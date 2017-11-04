@@ -24,7 +24,7 @@ function readPageDescription() {
         console.log("attempting to speak");
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
-        responsiveVoice.speak("Team 2 is awesome, but this still doesn't work...");
+        responsiveVoice.speak("Team 2 is awesome, but this page is not being helpful...");
     }
 }
 
@@ -73,11 +73,14 @@ function readBackInfo() {
 }
 
 function enterNewElement(newElement) {
+    responsiveVoice.cancel();
     parentView = currentView;
     currentView = newElement;
 
+    responsiveVoice.speak("You have now entered the " + $(currentView).attr("role") + " element.");
     if (currentView.hasChildNodes()) {
         currentDisplayElements = getElements(newElement);
+        readOutElementList(currentDisplayElements);
     } else {
         currentDisplayElements = null;
         readElement(currentView);
@@ -93,12 +96,22 @@ function getElements(selectedElement) {
     return $(selectedElement).children();
 }
 
+function goBack() {
+    currentView = parentView;
+}
+
 window.onkeyup = function(e) {
     if (isListening) {
         var key = e.keyCode ? e.keyCode : e.which;
 
+        // Back option
+        if (key === 48) {
+            // Go back
+            goBack();
+        }
+
         for (var i = 0; i < currentDisplayElements.length; i++) {
-            if (48 + i === key) {
+            if (49 + i === key) {
                 enterNewElement(currentDisplayElements[i]);
                 isListening = false;
                 break;
