@@ -9,6 +9,8 @@ var BANNER = "banner";
 var currentDisplayElements = [];
 var currentView = $(document);
 
+var isListening = false;
+
 function processTopLevel() {
     var pageDivs = $("body").children();
     var foundMain = false;
@@ -27,18 +29,42 @@ function processTopLevel() {
     }
 }
 
+function readOutElementList(list) {
+    // Prepare event listening
+    isListening = true;
+
+    // Read out elements
+    for (var i = 0; i < list.length; i++) {
+        readElementInfo(list[i], i);
+    }
+}
+
+function readElementInfo(element, index) {
+    // Read info
+    responsiveVoice.speak("To enter the " + element.attr("role") + "element, which is about " + element.attr("role_info") + ", press " + index);
+}
+
+function enterNewElement(newElement) {
+    currentView = newElement;
+
+    if (currentView )
+    currentDisplayElements = getElements(newElement);
+}
+
 function getElements(selectedElement) {
     return $(selectedElement).children();
 }
 
-function readOutElementList(list) {
-    for (var element in list) {
-        readElementInfo(element);
+window.onkeyup = function(e) {
+    if (isListening) {
+        var key = e.keyCode ? e.keyCode : e.which;
+
+        for (var i = 0; i < currentDisplayElements.length; i++) {
+            if (48 + i === key) {
+                enterNewElement(currentDisplayElements[i]);
+                isListening = false;
+                break;
+            }
+        }
     }
-}
-
-function readElementInfo(element) {
-    // Read info
-}
-
-
+};
