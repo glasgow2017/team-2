@@ -56,6 +56,7 @@ function readOutElementList(list) {
         readBackInfo();
     }
 
+    // TODO: Use nested things & categories
     responsiveVoice.speak("There are " + list.length + " options in this list.");
     for (var i = 0; i < list.length; i++) {
         readElementInfo(list[i], i + 1);
@@ -119,3 +120,14 @@ window.onkeyup = function(e) {
         }
     }
 };
+
+function parseNested(line) {
+    var total = 0;
+    var splitLine = line.split(",");
+
+    for (var i = 0; i < splitLine.length; i++) {
+        total += parseInt(splitLine[i].split(" ")[0]);
+    }
+
+    return total;
+}
