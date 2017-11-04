@@ -3,33 +3,36 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
-const tag_category = {
+const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
     "P": "TEXT",
-    "H1": "HEADING",
-    "H2": "HEADING",
-    "H3": "HEADING",
-    "H4": "HEADING",
-    "H5": "HEADING",
-    "H6": "HEADING",
+    "H1": "TEXT",
+    "H2": "TEXT",
+    "H3": "TEXT",
+    "H4": "TEXT",
+    "H5": "TEXT",
+    "H6": "TEXT",
     "A": "LINK",
     "IMG": "IMAGE",
     "NAV": "MENU",
     "BODY": "DOCUMENT",
     "BUTTON": "BUTTON",
+    "FORM": "FORM"
+};
 
-    };
-
-const keyword_category = {
+const keyword_role = {
     "menu" : "MENU",
-    "nav" : "MENU"
+    "nav" : "MENU",
+    "header": "HEADER",
+    "footer": "FOOTER",
 };
 
 
 function start() {
     backPropagation($('body'));
     forwardPropagation($('body'));
+    correctCategories($('body'));
 }
 
 /**
@@ -46,24 +49,24 @@ function forwardPropagation(element) {
 }
 
 /**
- * Back propagation for figuring the category of the element.
+ * Back propagation for figuring the role of the element.
  * @param element
  * @returns {Map}
  */
 function backPropagation(element) {
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
-        //Set the category of the element (def = EMPTY)
-        setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
+        //Set the role of the element (def = EMPTY)
+        setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
-            setAttr(element, 'category', getCategory(undefined, childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
+            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element, element.tagName, "CONTAINER"));
+            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
         }
     }
 
@@ -80,10 +83,10 @@ function backPropagation(element) {
 function getChildrenList(element) {
     const map = new Map();
     $(element).children().each(function () {
-        const category = $(this).attr('category');
-        if (map.has(category)) {
-            map.set(category, Number(map.get(category)) + 1);
-        } else map.set(category, 1);
+        const role = $(this).attr('role');
+        if (map.has(role)) {
+            map.set(role, Number(map.get(role)) + 1);
+        } else map.set(role, 1);
     });
 
     //Clear unwanted tags
@@ -102,23 +105,44 @@ function getChildrenList(element) {
 }
 
 /**
- * Get category of an element.
+ * Get role of an element.
  *
  * @param tagName
- * @param def is the default returned category
+ * @param def is the default returned role
  * @returns {*}
  */
-function getCategory(element, tagName, def) {
+function getRole(tagName, def) {
     //If we have element passed search through the keywords and on first occurrence return it.
-    if (element !== undefined) {
-        for (let word in keyword_category) {
-            const infer = inferCategoryFromAttributes(element, word);
-            if (infer !== undefined) return infer;
+    if (tag_role[tagName] !== undefined) {
+        return tag_role[tagName];
+    } else return def;
+}
+
+/**
+ * Corrects some special categories.
+ *
+ * @param element
+ * @returns {*}
+ */
+function correctCategories(element) {
+    if ($(element).children.length === 0 && $(element).text().length > 0) {
+        setAttr(element, 'role', "TEXT");
+        return;
+    }
+    if ($(element).children().length === 0 && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
+        setAttr(element, 'role', "EMPTY");
+        return "EMPTY";
+    }
+    for (let word in keyword_role) {
+        const infer = inferRoleFromAttributes(element, word);
+        if (infer !== undefined) {
+            setAttr(element, 'role', infer);
+            return infer;
         }
     }
-    if (tag_category[tagName] !== undefined) {
-        return tag_category[tagName];
-    } else return def;
+    $(element).children().each(function () {
+        correctCategories(this);
+    })
 }
 
 /**
@@ -142,21 +166,21 @@ function mergeMaps(map1, map2) {
 }
 
 /**
- * Infer the category of an element from the content of its attributes and a given keyword.
+ * Infer the role of an element from the content of its attributes and a given keyword.
  *
  * @param element
  * @param keyword
  * @returns {*}
  */
-function inferCategoryFromAttributes(element, keyword) {
+function inferRoleFromAttributes(element, keyword) {
     const attributes = element.attributes;
     //If it has attributes
     if (attributes !== undefined) {
         //Iterate
         for (let i = 0; i < attributes.length; i++) {
-            //If the attribute contains this word return the word's category
+            //If the attribute contains this word return the word's role
             if (attributes[i].value.indexOf(keyword) > -1) {
-                return keyword_category[keyword];
+                return keyword_role[keyword];
             }
         }
     }
