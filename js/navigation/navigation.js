@@ -8,6 +8,9 @@ function startNav() {
     var COMPLEMENTARY = "complementary";
     var BANNER = "banner";
 
+    var NAV_VOICE = "UK English Female";
+    var CONTENT_VOICE = "UK English Male";
+
     var currentDisplayElements = [];
     var currentView = $("body");
     var parentView = undefined;
@@ -51,24 +54,26 @@ function startNav() {
         console.log("Are we listening now? " + isListening);
 
         // Read out elements
-        console.log(parentView);
-        if (parentView != undefined) {
-            // Read out back button
-            readBackInfo();
-        }
 
         // TODO: Use nested things & categories
-        responsiveVoice.speak("There are " + list.length + " options in this list.");
+        responsiveVoice.speak("There are " + list.length + " in this container.");
         for (var i = 0; i < list.length; i++) {
             console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
+        }
+
+
+        console.log(parentView);
+        if (parentView !== undefined) {
+            // Read out back button
+            readBackInfo();
         }
     }
 
     function readElementInfo(element, index) {
         // Read info
         var jElement = $(element);
-        responsiveVoice.speak("To enter the " + jElement.attr("role") + " element, which is about " + jElement.attr("role_info") + ", press " + index);
+        responsiveVoice.speak(index + ", the" + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
     }
 
     function readBackInfo() {
@@ -84,8 +89,8 @@ function startNav() {
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
 
-        responsiveVoice.speak("You have now entered the " + $(currentView).attr("role") + " element.");
-        if ($(currentView).has("[role]")) {
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
             console.log("This next thing is a directory!");
             currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
@@ -96,9 +101,22 @@ function startNav() {
         }
     }
 
+    // TODO: Add support for input elements (Forms, buttons)
     function readElement(element) {
-        responsiveVoice.speak("The " + element.attr("role") + " section");
-        responsiveVoice.speak(element.val());
+        var jElement = $(element);
+        responsiveVoice.speak("reading the " + jElement.attr("role") + " section.");
+        readBackInfo();
+
+        // Depending on type, read differently
+        switch(jElement.attr("role")) {
+            case "TEXT":
+                responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
+                break;
+            case "HEADER":
+            case "LINK":
+            case "IMAGE":
+            case "MENU":
+        }
     }
 
     function getElements(selectedElement) {
