@@ -29,7 +29,7 @@ const keyword_role = {
 };
 
 
-function start() {
+function generateRoles() {
     backPropagation($('body'));
     forwardPropagation($('body'));
     correctCategories($('body'));
