@@ -15,7 +15,7 @@ var isListening = false;
 responsiveVoice.cancel();
 responsiveVoice.init();
 readPageDescription();
-processTopLevel();
+currentDisplayElements = getElements(currentView);
 readOutElementList(currentDisplayElements);
 
 function readPageDescription() {
@@ -101,7 +101,7 @@ function readElement(element) {
 
 function getElements(selectedElement) {
     console.log("Number of role children: " +$(selectedElement).children("[role]").length);
-    return $(selectedElement).children("[role]");
+    return $(selectedElement).children("[role][role!='EMPTY']");
 }
 
 function goBack() {
@@ -122,6 +122,7 @@ function goBack() {
     readOutElementList((currentDisplayElements));
 }
 
+//TODO: allow tab to skip elements
 window.onkeyup = function(e) {
     if (isListening) {
         var key = e.keyCode ? e.keyCode : e.which;
