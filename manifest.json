@@ -2,15 +2,26 @@
   "manifest_version": 2,
 
   "name": "Code For Good Extension",
-  "default_locale": "en",
   "description": "Allows greater accessibility to web pages.",
-  "version": "0.0",
 
+  "content_scripts": [
+    {
+      "matches": [
+      "http://*/*",
+      "https://*/*"
+      ],
+      "js": [
+        "js/libs/jquery-3.2.1.min.js",
+        "js/navigation/navigation.js"
+      ]
+    }
+  ],
   "browser_action": {
     "default_icon": "res/Icon.png",
     "default_title": "Accessibility"
   },
+  "version": "0.0",
   "permissions": [
-    "activeTab"
+    "activeTab","tabs","<all_urls>"
   ]
 }
