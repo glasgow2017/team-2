@@ -20,7 +20,7 @@ function readPageDescription() {
     if ($("body").is("[role_info]")) {
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
-        responsiveVoice.speak("This page is about something.");
+        responsiveVoice.speak("Team 2 is awesome.");
     }
 }
 
