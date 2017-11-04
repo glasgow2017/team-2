@@ -49,7 +49,8 @@ function readOutElementList(list) {
     console.log("Are we listening now? " + isListening);
 
     // Read out elements
-    if (parentView != null) {
+    console.log(parentView);
+    if (parentView != undefined) {
         // Read out back button
         readBackInfo();
     }
@@ -107,8 +108,16 @@ function goBack() {
     responsiveVoice.cancel();
 
     currentView = parentView;
-    parentView = $(currentView).parent();
+    console.log($(currentView).children("[role]"))
+    if (currentView.is('body')) {
+        parentView = $(currentView).parent();
+    } else {
+        parentView = undefined;
+    }
 
+    responsiveVoice.speak("You are back in the " + $(currentView).attr("role") + " element.");
+
+    console.log(currentView);
     currentDisplayElements = getElements(currentView);
     readOutElementList((currentDisplayElements));
 }
