@@ -6,6 +6,14 @@ class Keyword {
         this.textWeighting = 1;
     }
 
+    getWord() {
+        return this.word;
+    }
+
+    getRating() {
+        return this.rating;
+    }
+
     static compareTo(k1, k2) {
         if (!(k1 instanceof Keyword)) {
             throw "Illegal argument"
