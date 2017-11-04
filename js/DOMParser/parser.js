@@ -9,9 +9,18 @@ const tag_category = {
     "P": "TEXT",
     "H1": "TEXT",
     "H2": "TEXT",
+    "H3": "TEXT",
+    "H4": "TEXT",
+    "H5": "TEXT",
+    "H6": "TEXT",
     "A": "LINK",
     "IMG": "IMAGE",
     "NAV": "MENU"
+    };
+
+const keyword_category = {
+    "menu" : "MENU",
+    "nav" : "MENU"
 };
 
 
@@ -34,19 +43,18 @@ function forwardPropagation(element) {
 }
 
 function backPropagation(element) {
-    //if there are no children propagate
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
-        setAttr(element, 'category', getCategory(element.tagName, "EMPTY")); //TODO: sophisticate
+        setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
             childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
         });
-        if(childrenDescriptions.size === 1) {
-            setAttr(element, 'category', getCategory(childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
+        if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
+            setAttr(element, 'category', getCategory(undefined, childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element.tagName, "CONTAINER"));
+            setAttr(element, 'category', getCategory(element, element.tagName, "CONTAINER"));
         }
     }
 
@@ -63,10 +71,10 @@ function backPropagation(element) {
 function getChildrenList(element) {
     const map = new Map();
     $(element).children().each(function () {
-        const tag_name = this.tagName;
-        if (map.has(tag_name)) {
-            map.set(tag_name, Number(map.get(tag_name)) + 1);
-        } else map.set(tag_name, 1);
+        const category = $(this).attr('category');
+        if (map.has(category)) {
+            map.set(category, Number(map.get(category)) + 1);
+        } else map.set(category, 1);
     });
 
     clearMap(map);
@@ -88,7 +96,13 @@ function getChildrenList(element) {
  * @param tagName
  * @returns {*}
  */
-function getCategory(tagName, def) {
+function getCategory(element, tagName, def) {
+    if (element !== undefined) {
+        for (let word in keyword_category) {
+            var infer = inferCategoryFromAttributes(element, word);
+            if (infer !== undefined) return infer;
+        }
+    }
     if (tag_category[tagName] !== undefined) {
         return tag_category[tagName];
     } else return def;
@@ -124,6 +138,19 @@ function buildRole(map) {
     return result;
 }
 
+function inferCategoryFromAttributes(element, keyword) {
+    var attributes = element.attributes;
+    if (attributes !== undefined) {
+        for (let i = 0; i < attributes.length; i++) {
+            var a = attributes[i];
+            if (a.value.indexOf(keyword) > -1) {
+                return keyword_category[keyword];
+            }
+        }
+    }
+    return undefined;
+}
+
 /**
  * Clears the map of unwanted tags.
  *
@@ -135,10 +162,37 @@ function clearMap(map) {
     map.delete("NOSCRIPT");
     map.delete("svg");
     map.delete("BR");
+    map.delete("EMPTY");
 
     return map;
 }
 
+/**
+ *
+ * @param {HTMLElement} element
+ */
+function buildRoleInfo(element) {
+    //Handle images
+    if (element.nodeName === "IMG") {
+        let keywords = [new ImgKeyword("keyword 1", 0.8), new ImgKeyword("keyword 2", 0.4)];
+        element.setAttribute("role_info", keywords.join(","));
+        return keywords;
+    //TODO: Handle text
+    } else if (element.nodeName === "") {
+
+    } else {
+        let keywords = [];
+        for (let child of element.children) {
+            keywords.push(buildRoleInfo(child));
+        }
+        keywords = keywordReduction(keywords);
+        element.setAttribute("role_info", keywords.join(","))
+    }
+}
+
+function buildAllRoleInfo() {
+    buildRoleInfo($('body'));
+}
 
 /**
  * Sets the alt of a HTML element.
