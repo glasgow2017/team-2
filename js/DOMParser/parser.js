@@ -7,15 +7,18 @@ const tag_category = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
     "P": "TEXT",
-    "H1": "TEXT",
-    "H2": "TEXT",
-    "H3": "TEXT",
-    "H4": "TEXT",
-    "H5": "TEXT",
-    "H6": "TEXT",
+    "H1": "HEADING",
+    "H2": "HEADING",
+    "H3": "HEADING",
+    "H4": "HEADING",
+    "H5": "HEADING",
+    "H6": "HEADING",
     "A": "LINK",
     "IMG": "IMAGE",
-    "NAV": "MENU"
+    "NAV": "MENU",
+    "BODY": "DOCUMENT",
+    "BUTTON": "BUTTON",
+
     };
 
 const keyword_category = {
@@ -42,14 +45,20 @@ function forwardPropagation(element) {
     });
 }
 
+/**
+ * Back propagation for figuring the category of the element.
+ * @param element
+ * @returns {Map}
+ */
 function backPropagation(element) {
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
+        //Set the category of the element (def = EMPTY)
         setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
-            childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
+            childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'category', getCategory(undefined, childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
@@ -77,9 +86,11 @@ function getChildrenList(element) {
         } else map.set(category, 1);
     });
 
+    //Clear unwanted tags
     clearMap(map);
 
-    let result = "empty,";
+    //Build result string
+    let result = "EMPTY,";
     if (map.size > 0) {
         result = "";
         for (let [key, value] of map) {
@@ -94,12 +105,14 @@ function getChildrenList(element) {
  * Get category of an element.
  *
  * @param tagName
+ * @param def is the default returned category
  * @returns {*}
  */
 function getCategory(element, tagName, def) {
+    //If we have element passed search through the keywords and on first occurrence return it.
     if (element !== undefined) {
         for (let word in keyword_category) {
-            var infer = inferCategoryFromAttributes(element, word);
+            const infer = inferCategoryFromAttributes(element, word);
             if (infer !== undefined) return infer;
         }
     }
@@ -115,7 +128,7 @@ function getCategory(element, tagName, def) {
  * @param map2
  * @returns {*}
  */
-function combineMaps(map1, map2) {
+function mergeMaps(map1, map2) {
     for (var [key, value] of map2) {
         if (map1.has(key)) {
             map1.set(key, map1.get(key) + value);
@@ -128,22 +141,21 @@ function combineMaps(map1, map2) {
     return map1;
 }
 
-function buildRole(map) {
-    let result = "";
-    if (map.size > 0) {
-        for (let [key, value] of map) {
-            result += (value + " " + key + ", ");
-        }
-    }
-    return result;
-}
-
+/**
+ * Infer the category of an element from the content of its attributes and a given keyword.
+ *
+ * @param element
+ * @param keyword
+ * @returns {*}
+ */
 function inferCategoryFromAttributes(element, keyword) {
-    var attributes = element.attributes;
+    const attributes = element.attributes;
+    //If it has attributes
     if (attributes !== undefined) {
+        //Iterate
         for (let i = 0; i < attributes.length; i++) {
-            var a = attributes[i];
-            if (a.value.indexOf(keyword) > -1) {
+            //If the attribute contains this word return the word's category
+            if (attributes[i].value.indexOf(keyword) > -1) {
                 return keyword_category[keyword];
             }
         }
