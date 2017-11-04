@@ -274,7 +274,7 @@ function buildRoleInfo(element) {
             getLabelsFromGoogle(base64img);
             let keywords = [new ImgKeyword(base64img, 0.8), new ImgKeyword("keyword 2", 0.4)];
             element.setAttribute("role_info", keywords.join(","));
-            debugger;
+            //debugger;
             dfd.resolve(keywords);
         });
     //TODO: Handle text
@@ -293,9 +293,11 @@ function buildRoleInfo(element) {
             // element.setAttribute("role_info", keywords.join(","));
             let keywords = [];
             if (arguments.length > 0) {
-                for (let i = 0; i < arguments[0].length; i++) {
+                for (let i = 0; i < arguments.length; i++) {
+                    for (let img = 0; img < arguments[i].length; img ++) {
+                        keywords.push(arguments[i][img]);
+                    }
                     // debugger;
-                    keywords.push(arguments[0][i]);
                 }
             }
             dfd.resolve(keywords);
