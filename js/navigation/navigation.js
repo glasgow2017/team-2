@@ -54,9 +54,7 @@ function startNav() {
         console.log("Are we listening now? " + isListening);
 
         // Read out elements
-
-        // TODO: Use nested things & categories
-        responsiveVoice.speak("There are " + list.length + " in this container.");
+        responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this container.");
         for (var i = 0; i < list.length; i++) {
             console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
@@ -82,22 +80,28 @@ function startNav() {
         console.log("Are we listening now? " + isListening);
     }
 
-    function enterNewElement(newElement) {
+    function enterNewElement(newElement, newParent) {
         responsiveVoice.cancel();
-        parentView = currentView;
+        parentView = newParent;
         currentView = newElement;
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
 
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
-        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
-            console.log("This next thing is a directory!");
-            currentDisplayElements = getElements(newElement);
-            readOutElementList(currentDisplayElements);
+        if (parseNested($(currentView).attr("nested")) === 1) {
+            // No need to view this element, skip to next element
+            currentDisplayElements = getElements(currentView);
+            enterNewElement(currentDisplayElements[0], parentView);
         } else {
-            console.log("This next thing is NOT a directory!");
-            currentDisplayElements = null;
-            readElement(currentView);
+            responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+            if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
+                console.log("This next thing is a directory!");
+                currentDisplayElements = getElements(newElement);
+                readOutElementList(currentDisplayElements);
+            } else {
+                console.log("This next thing is NOT a directory!");
+                currentDisplayElements = null;
+                readElement(currentView);
+            }
         }
     }
 
@@ -106,6 +110,8 @@ function startNav() {
         var jElement = $(element);
         responsiveVoice.speak("reading the " + jElement.attr("role") + " section.");
         readBackInfo();
+        isListening = true;
+        currentDisplayElements = undefined;
 
         // Depending on type, read differently
         switch(jElement.attr("role")) {
@@ -157,7 +163,7 @@ function startNav() {
             for (var i = 0; i < currentDisplayElements.length; i++) {
                 if (49 + i === key) {
                     isListening = false;
-                    enterNewElement(currentDisplayElements[i]);
+                    enterNewElement(currentDisplayElements[i], currentView);
                     break;
                 }
             }

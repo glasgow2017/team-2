@@ -3,6 +3,8 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
+
+// TODO: Make containers that have nothing in them EMPTY, not CONTAINERs
 const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
