@@ -4,14 +4,18 @@
  * Here there are methods used to parse the dome and add alt text
  */
 const tag_category = {
-        "HEADER": "HEADER",
-        "FOOTER": "FOOTER",
-        "P": "TEXT",
-        "H1": "TEXT",
-        "H2": "TEXT",
-        "A": "LINK",
-        "IMG": "IMAGE",
-        "NAV": "MENU"
+    "HEADER": "HEADER",
+    "FOOTER": "FOOTER",
+    "P": "TEXT",
+    "H1": "TEXT",
+    "H2": "TEXT",
+    "H3": "TEXT",
+    "H4": "TEXT",
+    "H5": "TEXT",
+    "H6": "TEXT",
+    "A": "LINK",
+    "IMG": "IMAGE",
+    "NAV": "MENU"
     };
 
 const keyword_category = {
@@ -39,7 +43,6 @@ function forwardPropagation(element) {
 }
 
 function backPropagation(element) {
-    //if there are no children propagate
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
         setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
@@ -68,10 +71,10 @@ function backPropagation(element) {
 function getChildrenList(element) {
     const map = new Map();
     $(element).children().each(function () {
-        const tag_name = this.tagName;
-        if (map.has(tag_name)) {
-            map.set(tag_name, Number(map.get(tag_name)) + 1);
-        } else map.set(tag_name, 1);
+        const category = $(this).attr('category');
+        if (map.has(category)) {
+            map.set(category, Number(map.get(category)) + 1);
+        } else map.set(category, 1);
     });
 
     clearMap(map);
@@ -99,7 +102,8 @@ function getCategory(element, tagName, def) {
             var infer = inferCategoryFromAttributes(element, word);
             if (infer !== undefined) return infer;
         }
-    } else if (tag_category[tagName] !== undefined) {
+    }
+    if (tag_category[tagName] !== undefined) {
         return tag_category[tagName];
     } else return def;
 }
@@ -158,6 +162,7 @@ function clearMap(map) {
     map.delete("NOSCRIPT");
     map.delete("svg");
     map.delete("BR");
+    map.delete("EMPTY");
 
     return map;
 }
