@@ -3,12 +3,12 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
-var tag_category = [
-    "HEADER",
-    "FOOTER",
-    "TEXT",
-    "IMAGE"
-];
+var tag_category = {
+    "HEADER": "HEADER",
+    "FOOTER": "FOOTER",
+    "P" : "TEXT",
+    "IMG" : "IMAGE"
+};
 
 function start() {
     forwardPropagation($('body'));
@@ -40,9 +40,9 @@ function backPropagation(element) {
         });
         //console.log(element, childrenDescriptions);
         if(childrenDescriptions.size === 1) {
-            setAttr(element, 'category', childrenDescriptions.keys().next().value + "_CONTAINER");
+            setAttr(element, 'category', getCategory(childrenDescriptions.keys().next().value) + "_CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element));
+            setAttr(element, 'category', getCategory(element.tagName));
         }
     }
 
@@ -76,9 +76,9 @@ function getChildrenList(element) {
     return result.substr(0, result.length - 1);
 }
 
-function getCategory(element) {
-    if (tag_category.includes(element.tagName)) {
-        return element.tagName;
+function getCategory(tagName) {
+    if (tag_category[tagName] !== undefined) {
+        return tag_category[tagName];
     } else return "CONTAINER";
 }
 
