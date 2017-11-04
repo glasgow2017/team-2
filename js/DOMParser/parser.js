@@ -3,17 +3,51 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
+var tag_category = [
+    "HEADER",
+    "FOOTER",
+    "TEXT",
+    "IMAGE"
+];
 
-/**
- * Sets the alt of a HTML element.
- *
- * @param element
- * @param alt_text
- */
-function setAlt(element, alt_text) {
-    $(element).attr('alt', alt_text);
+function start() {
+    forwardPropagation($('body'));
+    backPropagation($('body'));
 }
 
+/**
+ * Iterate through the elements and set their children nodes.
+ *
+ * @param element
+ */
+function forwardPropagation(element) {
+    var alt = getChildrenList(element);
+    setAttr(element, 'nested', alt);
+    $(element).children().each(function () {
+        forwardPropagation(this);
+    });
+}
+
+function backPropagation(element) {
+    //if there are no children propagate
+    var childrenDescriptions = new Map();
+    if($(element).children().length === 0) {
+        setAttr(element, 'category', "EMPTY"); //TODO: sophisticate
+        childrenDescriptions.set(element.tagName, 1);
+    } else {
+        $(element).children().each(function () {
+            childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
+        });
+        //console.log(element, childrenDescriptions);
+        if(childrenDescriptions.size === 1) {
+            setAttr(element, 'category', childrenDescriptions.keys().next().value + "_CONTAINER");
+        } else {
+            setAttr(element, 'category', getCategory(element));
+        }
+    }
+
+    return childrenDescriptions;
+}
 
 /**
  * Gets the children list of an element and converts it ot a list.
@@ -39,22 +73,53 @@ function getChildrenList(element) {
         }
     }
 
+    return result.substr(0, result.length - 1);
+}
 
-    //Add the break symbol that is the boundary between the children count and their description.
-    result += ";";
-
-    return result;
+function getCategory(element) {
+    if (tag_category.includes(element.tagName)) {
+        return element.tagName;
+    } else return "CONTAINER";
 }
 
 /**
- * Iterate through the elements.
+ * Combines 2 maps so that they do not have repeating elements.
+ *
+ * @param map1
+ * @param map2
+ * @returns {*}
+ */
+function combineMaps(map1, map2) {
+    console.log(map1, map2);for (var [key, value] of map2) {
+        if (map1.has(key)) {
+            map1.set(key, map1.get(key) + value);
+        } else map1.set(key, value);
+    }
+
+    //clean non-needed tags
+    map1.delete("SCRIPT");
+    map1.delete("NOSCRIPT");
+
+    return map1;
+}
+
+function buildRole(map) {
+    var result = "";
+    if (map.size > 0) {
+        for (var [key, value] of map) {
+            result += (value + " " + key + ", ");
+        }
+    }
+    return result;
+}
+
+
+/**
+ * Sets the alt of a HTML element.
  *
  * @param element
+ * @param alt_text
  */
-function forwardPropagation(element) {
-    var alt = getChildrenList(element);
-    setAlt(element, alt);
-    $(element).children().each(function () {
-        forwardPropagation(this);
-    });
+function setAttr(element, attr, alt_text) {
+    $(element).attr(attr, alt_text);
 }
