@@ -12,13 +12,20 @@ var parentView = undefined;
 
 var isListening = false;
 
+readPageDescription();
 processTopLevel();
 readOutElementList(currentDisplayElements);
 
+function readPageDescription() {
+    if ($("body").is("[role_info]")) {
+        responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
+    } else {
+        responsiveVoice.speak("This page is about something.");
+    }
+}
+
 function processTopLevel() {
     var pageDivs = $("body").children();
-    var foundMain = false;
-    var foundNav = false;
 
     for (var div in pageDivs) {
         if (pageDivs.hasOwnProperty(div) && $(div).is("[role]")) {
@@ -38,7 +45,7 @@ function readOutElementList(list) {
     isListening = true;
 
     // Read out elements
-    if (currentView !== $(document)) {
+    if (parentView != null) {
         // Read out back button
         readBackInfo();
     }
