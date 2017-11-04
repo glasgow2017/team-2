@@ -1,0 +1,24 @@
+{
+  "name": "apihandoff",
+  "version": "1.0.0",
+  "description": "an api wrapper to avoid including api keys in the extension",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glasgow2017/team-2.git"
+  },
+  "author": "oscar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/glasgow2017/team-2/issues"
+  },
+  "homepage": "https://github.com/glasgow2017/team-2#readme"
+}
