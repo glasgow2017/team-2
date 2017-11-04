@@ -19,7 +19,7 @@ processTopLevel();
 readOutElementList(currentDisplayElements);
 
 function readPageDescription() {
-    if ($("body").is("[role_info]")) {
+    if (currentView.is("[role_info]")) {
         //console.log("attempting to speak");
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
