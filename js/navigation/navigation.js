@@ -109,10 +109,10 @@ function goBack() {
 
     currentView = parentView;
     console.log($(currentView).children("[role]"))
-    if (currentView.is('body')) {
-        parentView = $(currentView).parent();
-    } else {
+    if ($(currentView).is('body')) {
         parentView = undefined;
+    } else {
+        parentView = $(currentView).parent();
     }
 
     responsiveVoice.speak("You are back in the " + $(currentView).attr("role") + " element.");
@@ -128,7 +128,7 @@ window.onkeyup = function(e) {
 
         // Back option
         console.log("Pressed keycode: " + key);
-        if (key === 48) {
+        if (key === 48 && parentView !== undefined) {
             // Go back
             isListening = false;
             goBack();
