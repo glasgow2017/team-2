@@ -17,10 +17,12 @@ processTopLevel();
 readOutElementList(currentDisplayElements);
 
 function readPageDescription() {
+    responsiveVoice.speak("Team 2 is awesome, but this still doesn't work...");
     if ($("body").is("[role_info]")) {
+        responsiveVoice.speak("Team 2 is awesome, and holy crap I might have found the problem.");
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
-        responsiveVoice.speak("Team 2 is awesome.");
+        responsiveVoice.speak("Team 2 is awesome, but this still doesn't work...");
     }
 }
 
@@ -49,6 +51,8 @@ function readOutElementList(list) {
         // Read out back button
         readBackInfo();
     }
+
+    responsiveVoice.speak("There are " + list.length + " options in this list.");
     for (var i = 0; i < list.length; i++) {
         readElementInfo(list[i], i + 1);
     }
@@ -67,8 +71,17 @@ function enterNewElement(newElement) {
     parentView = currentView;
     currentView = newElement;
 
-    if (currentView )
-    currentDisplayElements = getElements(newElement);
+    if (currentView.hasChildNodes()) {
+        currentDisplayElements = getElements(newElement);
+    } else {
+        currentDisplayElements = null;
+        readElement(currentView);
+    }
+}
+
+function readElement(element) {
+    responsiveVoice.speak("The " + element.attr("role") + " section");
+    responsiveVoice.speak(element.val());
 }
 
 function getElements(selectedElement) {
