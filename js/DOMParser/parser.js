@@ -4,14 +4,19 @@
  * Here there are methods used to parse the dome and add alt text
  */
 const tag_category = {
-    "HEADER": "HEADER",
-    "FOOTER": "FOOTER",
-    "P": "TEXT",
-    "H1": "TEXT",
-    "H2": "TEXT",
-    "A": "LINK",
-    "IMG": "IMAGE",
-    "NAV": "MENU"
+        "HEADER": "HEADER",
+        "FOOTER": "FOOTER",
+        "P": "TEXT",
+        "H1": "TEXT",
+        "H2": "TEXT",
+        "A": "LINK",
+        "IMG": "IMAGE",
+        "NAV": "MENU"
+    };
+
+const keyword_category = {
+    "menu" : "MENU",
+    "nav" : "MENU"
 };
 
 
@@ -37,16 +42,16 @@ function backPropagation(element) {
     //if there are no children propagate
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
-        setAttr(element, 'category', getCategory(element.tagName, "EMPTY")); //TODO: sophisticate
+        setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
             childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
         });
-        if(childrenDescriptions.size === 1) {
-            setAttr(element, 'category', getCategory(childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
+        if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
+            setAttr(element, 'category', getCategory(undefined, childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element.tagName, "CONTAINER"));
+            setAttr(element, 'category', getCategory(element, element.tagName, "CONTAINER"));
         }
     }
 
@@ -88,8 +93,13 @@ function getChildrenList(element) {
  * @param tagName
  * @returns {*}
  */
-function getCategory(tagName, def) {
-    if (tag_category[tagName] !== undefined) {
+function getCategory(element, tagName, def) {
+    if (element !== undefined) {
+        for (let word in keyword_category) {
+            var infer = inferCategoryFromAttributes(element, word);
+            if (infer !== undefined) return infer;
+        }
+    } else if (tag_category[tagName] !== undefined) {
         return tag_category[tagName];
     } else return def;
 }
@@ -124,6 +134,19 @@ function buildRole(map) {
     return result;
 }
 
+function inferCategoryFromAttributes(element, keyword) {
+    var attributes = element.attributes;
+    if (attributes !== undefined) {
+        for (let i = 0; i < attributes.length; i++) {
+            var a = attributes[i];
+            if (a.value.indexOf(keyword) > -1) {
+                return keyword_category[keyword];
+            }
+        }
+    }
+    return undefined;
+}
+
 /**
  * Clears the map of unwanted tags.
  *
@@ -139,6 +162,32 @@ function clearMap(map) {
     return map;
 }
 
+/**
+ *
+ * @param {HTMLElement} element
+ */
+function buildRoleInfo(element) {
+    //Handle images
+    if (element.nodeName === "IMG") {
+        let keywords = [new ImgKeyword("keyword 1", 0.8), new ImgKeyword("keyword 2", 0.4)];
+        element.setAttribute("role_info", keywords.join(","));
+        return keywords;
+    //TODO: Handle text
+    } else if (element.nodeName === "") {
+
+    } else {
+        let keywords = [];
+        for (let child of element.children) {
+            keywords.push(buildRoleInfo(child));
+        }
+        keywords = keywordReduction(keywords);
+        element.setAttribute("role_info", keywords.join(","))
+    }
+}
+
+function buildAllRoleInfo() {
+    buildRoleInfo($('body'));
+}
 
 /**
  * Sets the alt of a HTML element.
