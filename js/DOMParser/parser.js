@@ -3,16 +3,21 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
-var tag_category = {
+const tag_category = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
-    "P" : "TEXT",
-    "IMG" : "IMAGE"
+    "P": "TEXT",
+    "H1": "TEXT",
+    "H2": "TEXT",
+    "A": "LINK",
+    "IMG": "IMAGE",
+    "NAV": "MENU"
 };
 
+
 function start() {
-    forwardPropagation($('body'));
     backPropagation($('body'));
+    forwardPropagation($('body'));
 }
 
 /**
@@ -21,7 +26,7 @@ function start() {
  * @param element
  */
 function forwardPropagation(element) {
-    var alt = getChildrenList(element);
+    const alt = getChildrenList(element);
     setAttr(element, 'nested', alt);
     $(element).children().each(function () {
         forwardPropagation(this);
@@ -30,19 +35,18 @@ function forwardPropagation(element) {
 
 function backPropagation(element) {
     //if there are no children propagate
-    var childrenDescriptions = new Map();
+    let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
-        setAttr(element, 'category', "EMPTY"); //TODO: sophisticate
+        setAttr(element, 'category', getCategory(element.tagName, "EMPTY")); //TODO: sophisticate
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
             childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
         });
-        //console.log(element, childrenDescriptions);
         if(childrenDescriptions.size === 1) {
-            setAttr(element, 'category', getCategory(childrenDescriptions.keys().next().value) + "_CONTAINER");
+            setAttr(element, 'category', getCategory(childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element.tagName));
+            setAttr(element, 'category', getCategory(element.tagName, "CONTAINER"));
         }
     }
 
@@ -57,29 +61,37 @@ function backPropagation(element) {
  * @returns {string}
  */
 function getChildrenList(element) {
-    var map = new Map();
+    const map = new Map();
     $(element).children().each(function () {
-        var tag_name = this.tagName;
+        const tag_name = this.tagName;
         if (map.has(tag_name)) {
             map.set(tag_name, Number(map.get(tag_name)) + 1);
         } else map.set(tag_name, 1);
     });
 
-    var result = "empty";
+    clearMap(map);
+
+    let result = "empty,";
     if (map.size > 0) {
         result = "";
-        for (var [key, value] of map) {
-            result += (value + " " + key + ", ");
+        for (let [key, value] of map) {
+            result += (value + " " + key + ",");
         }
     }
 
     return result.substr(0, result.length - 1);
 }
 
-function getCategory(tagName) {
+/**
+ * Get category of an element.
+ *
+ * @param tagName
+ * @returns {*}
+ */
+function getCategory(tagName, def) {
     if (tag_category[tagName] !== undefined) {
         return tag_category[tagName];
-    } else return "CONTAINER";
+    } else return def;
 }
 
 /**
@@ -90,27 +102,41 @@ function getCategory(tagName) {
  * @returns {*}
  */
 function combineMaps(map1, map2) {
-    console.log(map1, map2);for (var [key, value] of map2) {
+    for (var [key, value] of map2) {
         if (map1.has(key)) {
             map1.set(key, map1.get(key) + value);
         } else map1.set(key, value);
     }
 
     //clean non-needed tags
-    map1.delete("SCRIPT");
-    map1.delete("NOSCRIPT");
+    clearMap(map1);
 
     return map1;
 }
 
 function buildRole(map) {
-    var result = "";
+    let result = "";
     if (map.size > 0) {
-        for (var [key, value] of map) {
+        for (let [key, value] of map) {
             result += (value + " " + key + ", ");
         }
     }
     return result;
+}
+
+/**
+ * Clears the map of unwanted tags.
+ *
+ * @param map
+ * @returns {*}
+ */
+function clearMap(map) {
+    map.delete("SCRIPT");
+    map.delete("NOSCRIPT");
+    map.delete("svg");
+    map.delete("BR");
+
+    return map;
 }
 
 
