@@ -4,16 +4,15 @@
  * Here there are methods used to parse the dome and add alt text
  */
 const tag_category = {
-    "HEADER": "HEADER",
-    "FOOTER": "FOOTER",
-    "P": "TEXT",
-    "H1": "TEXT",
-    "H2": "TEXT",
-    "A": "LINK",
-    "IMG": "IMAGE",
-    "NAV": "MENU"
-};
-
+        "HEADER": "HEADER",
+        "FOOTER": "FOOTER",
+        "P": "TEXT",
+        "H1": "TEXT",
+        "H2": "TEXT",
+        "A": "LINK",
+        "IMG": "IMAGE",
+        "NAV": "MENU"
+    };
 
 function start() {
     backPropagation($('body'));
@@ -139,6 +138,32 @@ function clearMap(map) {
     return map;
 }
 
+/**
+ *
+ * @param {HTMLElement} element
+ */
+function buildRoleInfo(element) {
+    //Handle images
+    if (element.nodeName === "IMG") {
+        let keywords = [new ImgKeyword("keyword 1", 0.8), new ImgKeyword("keyword 2", 0.4)];
+        element.setAttribute("role_info", keywords.join(","));
+        return keywords;
+    //TODO: Handle text
+    } else if (element.nodeName === "") {
+
+    } else {
+        let keywords = [];
+        for (let child of element.children) {
+            keywords.push(buildRoleInfo(child));
+        }
+        keywords = keywordReduction(keywords);
+        element.setAttribute("role_info", keywords.join(","))
+    }
+}
+
+function buildAllRoleInfo() {
+    buildRoleInfo($('body'));
+}
 
 /**
  * Sets the alt of a HTML element.
