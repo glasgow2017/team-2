@@ -1,0 +1,5 @@
+2 different parts
+  easier navigation of the dom
+    breadth first instead of depth first
+  data extraction form sub elements and page description.
+    meta and content
