@@ -86,23 +86,17 @@ function startNav() {
         currentView = newElement;
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
-
-        if (parseNested($(currentView).attr("nested")) === 1) {
-            // No need to view this element, skip to next element
-            currentDisplayElements = getElements(currentView);
-            enterNewElement(currentDisplayElements[0], parentView);
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
+            console.log("This next thing is a directory!");
+            currentDisplayElements = getElements(newElement);
+            readOutElementList(currentDisplayElements);
         } else {
-            responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
-            if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
-                console.log("This next thing is a directory!");
-                currentDisplayElements = getElements(newElement);
-                readOutElementList(currentDisplayElements);
-            } else {
-                console.log("This next thing is NOT a directory!");
-                currentDisplayElements = null;
-                readElement(currentView);
-            }
+            console.log("This next thing is NOT a directory!");
+            currentDisplayElements = null;
+            readElement(currentView);
         }
+
     }
 
     // TODO: Add support for input elements (Forms, buttons)
@@ -126,8 +120,12 @@ function startNav() {
     }
 
     function getElements(selectedElement) {
-        console.log("Number of role children: " + $(selectedElement).children("[role]").length);
-        return $(selectedElement).children("[role][role!='EMPTY']");
+        if (parseNested($(selectedElement).attr("nested")) === 1) {
+            // No need to view this element, skip to next element
+            return getElements($(selectedElement).children("[role][role!='EMPTY']")[0]);
+        } else {
+            return $(selectedElement).children("[role][role!='EMPTY']");
+        }
     }
 
     function goBack() {
@@ -160,11 +158,13 @@ function startNav() {
                 goBack();
             }
 
-            for (var i = 0; i < currentDisplayElements.length; i++) {
-                if (49 + i === key) {
-                    isListening = false;
-                    enterNewElement(currentDisplayElements[i], currentView);
-                    break;
+            if (currentDisplayElements !== undefined) {
+                for (var i = 0; i < currentDisplayElements.length; i++) {
+                    if (49 + i === key) {
+                        isListening = false;
+                        enterNewElement(currentDisplayElements[i], currentView);
+                        break;
+                    }
                 }
             }
         }
