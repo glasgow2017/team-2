@@ -12,13 +12,15 @@ var parentView = undefined;
 
 var isListening = false;
 
+responsiveVoice.init();
+console.log("Hello");
 readPageDescription();
 processTopLevel();
 readOutElementList(currentDisplayElements);
 
 function readPageDescription() {
-    responsiveVoice.speak("Team 2 is awesome, but this still doesn't work...");
     if ($("body").is("[role_info]")) {
+        console.log("attempting to speak");
         responsiveVoice.speak("Team 2 is awesome, and holy crap I might have found the problem.");
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
