@@ -18,7 +18,10 @@ const tag_role = {
     "NAV": "MENU",
     "BODY": "DOCUMENT",
     "BUTTON": "BUTTON",
-    "FORM": "FORM"
+    "FORM": "FORM",
+    "UL": "LIST",
+    "OL": "LIST",
+    "LI": "LIST ITEM"
 };
 
 const keyword_role = {
@@ -30,9 +33,11 @@ const keyword_role = {
 
 
 function generateRoles() {
-    backPropagation($('body'));
-    forwardPropagation($('body'));
-    correctCategories($('body'));
+    const body = $('body');
+    backPropagation(body);
+    correctCategories(body);
+    inputFormCategories(body);
+    forwardPropagation(body);
 }
 
 /**
@@ -146,6 +151,17 @@ function correctCategories(element) {
     }
     $(element).children().each(function () {
         correctCategories(this);
+    })
+}
+
+/**
+ * Create
+ * @param element
+ */
+function inputFormCategories(element) {
+    $(element).find('input').each(function () {
+        const type = $(this).attr('type');
+        setAttr(this, 'role', type.toUpperCase() + " INPUT");
     })
 }
 
