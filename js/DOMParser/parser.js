@@ -64,7 +64,7 @@ function backPropagation(element) {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
-            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
+            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
             setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
         }
@@ -125,13 +125,17 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctCategories(element) {
-    if ($(element).children.length === 0 && $(element).text().length > 0) {
+    if (element.tagName === "SCRIPT") {
+        setAttr(element, 'role', "EMPTY");
+        return;
+    }
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
         setAttr(element, 'role', "TEXT");
         return;
     }
-    if ($(element).children().length === 0 && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
+    if ($(element).attr('nested') === "EMPTY" && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
-        return "EMPTY";
+        return;
     }
     for (let word in keyword_role) {
         const infer = inferRoleFromAttributes(element, word);
