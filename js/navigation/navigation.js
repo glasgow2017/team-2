@@ -8,8 +8,12 @@ var BANNER = "banner";
 
 var currentDisplayElements = [];
 var currentView = $(document);
+var parentView = undefined;
 
 var isListening = false;
+
+processTopLevel();
+readOutElementList(currentDisplayElements);
 
 function processTopLevel() {
     var pageDivs = $("body").children();
@@ -34,8 +38,12 @@ function readOutElementList(list) {
     isListening = true;
 
     // Read out elements
+    if (currentView !== $(document)) {
+        // Read out back button
+        readBackInfo();
+    }
     for (var i = 0; i < list.length; i++) {
-        readElementInfo(list[i], i);
+        readElementInfo(list[i], i + 1);
     }
 }
 
@@ -44,7 +52,12 @@ function readElementInfo(element, index) {
     responsiveVoice.speak("To enter the " + element.attr("role") + "element, which is about " + element.attr("role_info") + ", press " + index);
 }
 
+function readBackInfo() {
+    responsiveVoice.speak("To go back to the " + parentView.attr("role") + "element, which is about " + parentView.attr("role_info") + ", press " + 0);
+}
+
 function enterNewElement(newElement) {
+    parentView = currentView;
     currentView = newElement;
 
     if (currentView )

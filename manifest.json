@@ -12,6 +12,7 @@
       ],
       "js": [
         "js/libs/jquery-3.2.1.min.js",
+        "js/libs/responsivevoice.js",
         "js/navigation/navigation.js"
       ]
     }
