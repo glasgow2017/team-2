@@ -12,6 +12,7 @@ var parentView = undefined;
 
 var isListening = false;
 
+responsiveVoice.cancel();
 responsiveVoice.init();
 console.log("Hello");
 readPageDescription();
@@ -21,7 +22,6 @@ readOutElementList(currentDisplayElements);
 function readPageDescription() {
     if ($("body").is("[role_info]")) {
         console.log("attempting to speak");
-        responsiveVoice.speak("Team 2 is awesome, and holy crap I might have found the problem.");
         responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
     } else {
         responsiveVoice.speak("Team 2 is awesome, but this still doesn't work...");
@@ -29,19 +29,21 @@ function readPageDescription() {
 }
 
 function processTopLevel() {
-    var pageDivs = $("body").children();
+    var pageDivs = $("body").find("[role]");
+    console.log(pageDivs.length);
 
-    for (var div in pageDivs) {
-        if (pageDivs.hasOwnProperty(div) && $(div).is("[role]")) {
-            var divRole = div.attr("role");
-            if (divRole === SEARCH || divRole === FORM || divRole === CONTENTINFO || divRole === COMPLEMENTARY ||
-            divRole === BANNER || divRole === MAIN || divRole === NAVIGATION) {
-                // Add div to list of displayable divs
-                currentDisplayElements.push(div);
-                console.log("Displayable Div: " + div);
-            }
+    for (var i = 0; i < pageDivs.length; i++) {
+        var divRole = $(pageDivs[i]).attr("role");
+        console.log("Div: " + pageDivs[i]);
+        console.log("Div Role: " + divRole);
+        if (divRole == SEARCH || divRole == FORM || divRole == CONTENTINFO || divRole == COMPLEMENTARY ||
+            divRole == BANNER || divRole == MAIN || divRole == NAVIGATION) {
+            // Add div to list of displayable divs
+            currentDisplayElements.push(pageDivs[i]);
+            console.log("Displayable Div: " + pageDivs[i]);
         }
     }
+
 }
 
 function readOutElementList(list) {
@@ -62,11 +64,12 @@ function readOutElementList(list) {
 
 function readElementInfo(element, index) {
     // Read info
-    responsiveVoice.speak("To enter the " + element.attr("role") + "element, which is about " + element.attr("role_info") + ", press " + index);
+    var jElement = $(element);
+    responsiveVoice.speak("To enter the " + jElement.attr("role") + " element, which is about " + jElement.attr("role_info") + ", press " + index);
 }
 
 function readBackInfo() {
-    responsiveVoice.speak("To go back to the " + parentView.attr("role") + "element, which is about " + parentView.attr("role_info") + ", press " + 0);
+    responsiveVoice.speak("To go back to the " + parentView.attr("role") + " element, which is about " + parentView.attr("role_info") + ", press " + 0);
 }
 
 function enterNewElement(newElement) {
