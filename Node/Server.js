@@ -4,10 +4,11 @@ var bodyParser = require("body-parser");
 var fs = require("fs");
 MeaningCloudAPIKey = "";
 fs.readFile("MeaningCloudAPIKey",function(err,data){
-  if (err != null){
+  if (err == null){
     MeaningCloudAPIKey = data;
   }
   else {
+    console.log(err+"exiting...")
     process.exit(0);
   }
 });
