@@ -123,3 +123,28 @@ function buildRole(map) {
 function setAttr(element, attr, alt_text) {
     $(element).attr(attr, alt_text);
 }
+
+/**
+ * Where we combine keywords into something more useful
+ * @param keywords Keyword objects to combine
+ * @returns {Array.<*>}
+ */
+function keywordReduction(keywords) {
+    let limit = 10;
+    keywords = [];
+    keywords.sort(Keyword.compareTo);
+    return keywords.slice(0, limit);
+}
+
+/**
+ * Converts google keyword responses to Keyword objects
+ * @param responses from google API
+ * @returns {Array}
+ */
+function keywordsFromGoogle(responses) {
+    const keywords = [];
+    for (let response of responses) {
+        keywords.push(new ImgKeyword(response.description, response.score));
+    }
+    return keywords;
+}
