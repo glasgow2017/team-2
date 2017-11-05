@@ -4,6 +4,7 @@
  * Here there are methods used to parse the dome and add alt text
  */
 
+//databases fot the tags and sections
 const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
