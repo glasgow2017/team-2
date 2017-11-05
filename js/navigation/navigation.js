@@ -23,6 +23,7 @@ function startNav() {
     readPageDescription();
     currentDisplayElements = getElements(currentView);
     readOutElementList(currentDisplayElements);
+    //Adding some comments/
 
     /**
      * Reads out the description of the page as a whole.
@@ -47,7 +48,6 @@ function startNav() {
         // Read out elements
         responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this section.");
         for (var i = 0; i < list.length; i++) {
-            console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
         }
 
@@ -71,7 +71,7 @@ function startNav() {
         switch(jElement.attr("role")) {
             case "LINK":
                 // Read links out to be pressed
-                responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
+                responsiveVoice.speak(index + ", a link to " + jElement.text());
                 break;
             case "BUTTON":
                 // Read buttons label out to know what will happen
@@ -134,28 +134,46 @@ function startNav() {
         currentDisplayElements = undefined;
 
         // Depending on type, read differently
-        responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
         switch(jElement.attr("role")) {
             case "TEXT":
+                responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
+                isListening = false;
+                goBack();
                 break;
             case "IMAGE":
+                responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
+                responsiveVoice.speak(jElement.attr("role_info"), CONTENT_VOICE);
                 break;
             case "FORM":
                 processForm(element);
+                isListening = false;
+                goBack();
                 break;
             case "DROPDOWN":
                 processDropDown(element);
+                isListening = false;
+                goBack();
                 break;
             case "BUTTON":
                 processButton(element);
+                isListening = false;
+                goBack();
+                break;
+            case "LINK":
+                var hrefAttr = $(element).attr("href");
+                if (hrefAttr !== undefined && hrefAttr !== "") {
+                    responsiveVoice.speak("Going to the " + jElement.text() + " page.");
+                    window.location.href = hrefAttr;
+                } else {
+                    responsiveVoice.speak("Sorry but the link to " + jElement.text() + " is broken.");
+                }
                 break;
             default: // For now just assume it's some kind of input
                 processInput(element);
+                isListening = false;
+                goBack();
         }
-
-        isListening = false;
-        goBack();
     }
 
     // TODO: Go to button
