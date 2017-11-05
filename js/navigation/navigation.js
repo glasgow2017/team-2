@@ -71,13 +71,22 @@ function startNav() {
     function readElementInfo(element, index) {
         // Read info
         var jElement = $(element);
-        responsiveVoice.speak(index + ", the" + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
+        switch(jElement.attr("role")) {
+            case "LINK":
+                // Read links out to be pressed
+                responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
+                break;
+            default:
+                responsiveVoice.speak(index + ", the" + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
+        }
     }
 
     function readBackInfo() {
-        var jParentView = $(parentView);
         responsiveVoice.speak("To go back, press 0");
-        console.log("Are we listening now? " + isListening);
+    }
+
+    function readRestartInfo() {
+        responsiveVoice.speak("To restart this message, press r");
     }
 
     function enterNewElement(newElement, newParent) {
@@ -87,7 +96,7 @@ function startNav() {
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
         responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
-        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0) {
+        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0) {
             console.log("This next thing is a directory!");
             currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
@@ -102,8 +111,7 @@ function startNav() {
     // TODO: Add support for input elements (Forms, buttons)
     function readElement(element) {
         var jElement = $(element);
-        responsiveVoice.speak("reading the " + jElement.attr("role") + " section.");
-        readBackInfo();
+        // Allow going back.
         isListening = true;
         currentDisplayElements = undefined;
 
@@ -113,10 +121,21 @@ function startNav() {
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
                 break;
             case "HEADER":
-            case "LINK":
+                break;
             case "IMAGE":
-            case "MENU":
+                break;
+            case "FORM":
+                processForm(element);
+                break;
         }
+
+        isListening = false;
+        goBack();
+    }
+
+    function processForm(element) {
+        // List out items
+
     }
 
     function getElements(selectedElement) {
@@ -147,8 +166,8 @@ function startNav() {
     }
 
     window.onkeyup = function (e) {
+        var key = e.keyCode ? e.keyCode : e.which;
         if (isListening) {
-            var key = e.keyCode ? e.keyCode : e.which;
 
             // Back option
             console.log("Pressed keycode: " + key);
@@ -167,6 +186,12 @@ function startNav() {
                     }
                 }
             }
+        }
+
+        // r to restart speech
+        if (key === 82) {
+            responsiveVoice.cancel();
+            enterNewElement(currentView, parentView);
         }
     };
 

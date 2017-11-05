@@ -26,7 +26,7 @@ const tag_role = {
     "LI": "LIST ITEM",
     "INPUT": "INPUT",
     "SELECT": "DROPDOWN",
-    "OPTION": "OPTION"
+    "OPTION": "OPTION",
 };
 
 const keyword_role = {
@@ -40,9 +40,9 @@ const keyword_role = {
 function generateRoles() {
     const body = $('body');
     backPropagation(body);
-    correctCategories(body);
     inputFormCategories(body);
     forwardPropagation(body);
+    correctCategories(body);
 }
 
 /**
@@ -145,10 +145,13 @@ function correctCategories(element) {
         setAttr(element, 'role', "TEXT");
         return;
     }
-    if ($(element).attr('nested') === "EMPTY" && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
+    console.log(element);
+    console.log(element.attributes);
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length === 0 && $(element).attr('role') === "TEXT") {
         setAttr(element, 'role', "EMPTY");
         return;
     }
+
     for (let word in keyword_role) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
@@ -169,7 +172,7 @@ function inputFormCategories(element) {
         const type = $(this).attr('type');
         setAttr(this, 'role', type.toUpperCase() + " INPUT");
         //Add label info
-        if (this.id !== undefined) {
+        if (this.id !== undefined && this.id.length > 0) {
             var info = $('label[for=' + this.id + ']').html();
             setAttr(this, 'role-info', info);
         }
@@ -239,10 +242,28 @@ function getLabelsFromGoogle(base64Image) {
     let dfr = jQuery.Deferred();
     //todo; take me out
     let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc");
-    promise.done(function (response) {
-        let results;
 
-        let out = keywordsFromGoogle(response.responses[0].labelAnnotations);
+    promise.done(function (response) {
+        let out = response.responses[0];
+
+        let logoAnnotations = out.logoAnnotations;
+        if (logoAnnotations === undefined || logoAnnotations === null) {
+            //do something
+        }
+
+        let labelAnnotations = out.labelAnnotations;
+        if (labelAnnotations === undefined || labelAnnotations === null){
+            //do something
+        } else {
+            out = keywordsFromGoogle();
+        }
+
+        let textAnnotations = out.textAnnotations;
+        if (textAnnotations === undefined || textAnnotations === null){
+            //do something
+        }
+
+        out = keywordsFromGoogle(response.responses[0].labelAnnotations);
         dfr.resolve(out);
     });
     return dfr;
