@@ -141,6 +141,13 @@ function correctCategories(element) {
         setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
+
+    //remove span elements
+    $(element).find("span").each(function(index) {
+        const text = $(this).text();//get span content
+        $(this).replaceWith(text);//replace all span with just content
+    });
+
     if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
         setAttr(element, 'role', "TEXT");
         return;
@@ -234,6 +241,7 @@ function clearMap(map) {
     map.delete("BR");
     map.delete("EMPTY");
     map.delete("LABEL");
+    map.delete("IFRAME");
 
     return map;
 }
