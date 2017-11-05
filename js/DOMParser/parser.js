@@ -345,7 +345,7 @@ function clearMap(map) {
 
 function getLabelsFromGoogle(base64Image) {
     let dfr = jQuery.Deferred();
-    //todo; take me out
+
     let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc", base64Image);
 
     promise.done(function (response) {
@@ -354,7 +354,6 @@ function getLabelsFromGoogle(base64Image) {
         let labelAnnotations = out.labelAnnotations;
 
         out = keywordsFromGoogle(out.labelAnnotations);
-
 
         /**
          * come back later when you work

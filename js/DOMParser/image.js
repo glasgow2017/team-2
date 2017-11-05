@@ -40,6 +40,7 @@ function makeRequest(APIkey, imageAs64) {
         dataType: 'json'
     });
 }
+
 function displayJSONResults(response) {
     console.log(response);
     console.log(response.responses[0].labelAnnotations[0]);
