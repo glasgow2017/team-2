@@ -5,6 +5,7 @@ var URL = 'https://vision.googleapis.com/v1/images:annotate?key=';
 /**
  * Makes a request to the Google Vision API
  * @param APIkey the API key
+ * @param imageAs64
  */
 function makeRequest(APIkey, imageAs64) {
     //the request to be made to the Google Vision API
