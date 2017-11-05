@@ -149,6 +149,7 @@ ApiQUery = function(text){
 function ImageToBase64(req,res){
   var link = req.body.image;
   var options = {string: true};
+  console.log(link);
   base64.encode(link, options, function (err, image) {
     if (err) {
         console.log(err);
