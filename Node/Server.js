@@ -14,7 +14,8 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  var data  = ApiQUery(req.body.text);  var i= 0;
+  var data  = ApiQUery(req.body.text);
+  var i= 0;
     var retdata = [];
     for (var element of data.entity_list){
       if (element.semtheme_list !== null) {
@@ -29,6 +30,38 @@ TopicExtraction = function(req,res){
     }
   res.send(retdata);
 }
+
+TopicParsing = function(topics){
+  var li = [];
+  var k = 0;
+  for(var topic of topics){
+    var spot = listCheck(li,topic.name);
+    if ( spot >= 0) {
+      li[spot].count++;
+      if (li[spot].relevance < topic.relevance) {
+        li[spot].relevance = topic.relevance;
+      }
+    }
+    else {
+      li.push({});
+      console.log(li);
+      li[k].name = topic.name;
+      li[k].count = 1;
+      li[k].relevance = topic.relevance;
+      k++;
+    }
+  }
+}
+
+listCheck = function(list, name){
+  for (var j = 0; j < list.length; j++) {
+    if (list[j].name === name) {
+      return j;
+    }
+  }
+  return -1;
+}
+
 
 ApiQUery = function(text){
   query = "https://api.meaningcloud.com/topics-2.0?key="+
