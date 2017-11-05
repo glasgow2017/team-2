@@ -107,7 +107,7 @@ function startNav() {
         console.log("Current view role: " + $(currentView).attr("role"));
         console.log("Current view role: " + $(newElement).attr("role"));
         if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
-            $(currentView).attr("role").indexOf("HEADER") >= 0) {
+            $(currentView).attr("role").indexOf("HEADER") >= 0 || $(currentView).attr("role").indexOf("LIST")) {
             console.log("This next thing is a directory!");
             readOutElementList(currentDisplayElements);
         } else {
@@ -143,6 +143,8 @@ function startNav() {
             case "DROPDOWN":
                 processDropDown(element);
                 break;
+            default: // For now just assume it's some kind of input
+                processInput(element);
         }
 
         isListening = false;
@@ -165,8 +167,18 @@ function startNav() {
                     responsiveVoice.speak("To select an item from the drop down, press " + i);
                     break;
                 default: // Should be something INPUT
-                    //TODO
+                    processInput(children[i]);
             }
+        }
+    }
+
+    function processInput(element) {
+        var inputType = element.split(" ")[0];
+
+        switch(inputType) {
+            case "TEXT":
+                // Textual input
+
         }
     }
 
