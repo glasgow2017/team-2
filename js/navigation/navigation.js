@@ -39,13 +39,13 @@ function startNav() {
      * @param list The list of elements to read out.
      */
     function readOutElementList(list) {
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
         // Prepare event listening
         isListening = true;
         //console.log("Are we listening now? " + isListening);
 
         // Read out elements
-        responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this container.");
+        responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this section.");
         for (var i = 0; i < list.length; i++) {
             console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
@@ -71,7 +71,7 @@ function startNav() {
         switch(jElement.attr("role")) {
             case "LINK":
                 // Read links out to be pressed
-                responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
+                responsiveVoice.speak(index + ", a link to " + jElement.text());
                 break;
             case "BUTTON":
                 // Read buttons label out to know what will happen
@@ -110,7 +110,7 @@ function startNav() {
         currentDisplayElements = getElements(newElement);
 
         var roleAttr = $(currentView).attr("role");
-        if (roleAttr.indexOf("CONTAINER") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
+        if (roleAttr.indexOf("SECTION") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
             roleAttr.indexOf("HEADER") >= 0 || roleAttr.indexOf("LIST") >= 0) {
             console.log("This next thing is a directory!");
             readOutElementList(currentDisplayElements);
@@ -134,28 +134,44 @@ function startNav() {
         currentDisplayElements = undefined;
 
         // Depending on type, read differently
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         switch(jElement.attr("role")) {
             case "TEXT":
+                responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
+                isListening = false;
+                goBack();
                 break;
             case "IMAGE":
                 break;
             case "FORM":
                 processForm(element);
+                isListening = false;
+                goBack();
                 break;
             case "DROPDOWN":
                 processDropDown(element);
+                isListening = false;
+                goBack();
                 break;
             case "BUTTON":
                 processButton(element);
+                isListening = false;
+                goBack();
+                break;
+            case "LINK":
+                var hrefAttr = $(element).attr("href");
+                if (hrefAttr !== undefined && hrefAttr !== "") {
+                    responsiveVoice.speak("Going to the " + jElement.text() + " page.");
+                    window.location.href = hrefAttr;
+                } else {
+                    responsiveVoice.speak("Sorry but the link to " + jElement.text() + " is broken.");
+                }
                 break;
             default: // For now just assume it's some kind of input
                 processInput(element);
+                isListening = false;
+                goBack();
         }
-
-        isListening = false;
-        goBack();
     }
 
     // TODO: Go to button
@@ -206,7 +222,7 @@ function startNav() {
         isListeningForSelection = true;
         currentDisplayElements = children;
 
-        responsiveVoice.speak("There are " + children.length + " elements available for selection.");
+        responsiveVoice.speak("There are " + children.length + " items available for selection.");
         if ($(dropdown).val()) {
             responsiveVoice.speak("The currently selected element is " + $(dropdown).val());
         }

@@ -3,6 +3,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var fs = require("fs");
 var request =require("request");
+var base64 = require("node-base64-image");
 MeaningCloudAPIKey = "";
 fs.readFile("MeaningCloudAPIKey",function(err,data){
   if (err === null){
@@ -15,7 +16,7 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  // console.log("\n\n\n\n"+req.body["text"]+"\n\n\n\n\n");
+  console.log("\n\n\n\n"+req.body+"\n\n\n\n\n");
 
 
   ApiQUery(req.body.text).then(function(dat){
@@ -63,18 +64,21 @@ TopicExtraction = function(req,res){
 
     }
 
+  };
+
     var parsed = TopicParsing(retdata);
     console.log(parsed);
 
     //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(parsed);
-};
 })}
 
 TopicParsing = function(topics){
+  console.log("topicparsing");
   var li = [];
   var k = 0;
   for(var topic of topics){
+    console.log(topic.name+" in for loop");
     var spot = listCheck(li,topic.name);
     if ( spot >= 0) {
       li[spot].count++;
@@ -91,6 +95,7 @@ TopicParsing = function(topics){
     }
   }
   maxCount = findMaxCount(li);
+  console.log("maxcount");
   for(var element of li){
     element.relevance =  element.relevance / (maxCount+1 - element.count) / 100;
   }
@@ -141,6 +146,20 @@ ApiQUery = function(text){
   return prom;
 }
 
+function ImageToBase64(req,res){
+  var link = req.body.image;
+  var options = {string: true};
+  console.log(link);
+  base64.encode(link, options, function (err, image) {
+    if (err) {
+        console.log(err);
+        res.status(400).send(err);
+    }
+    console.log(image);
+    res.send(image);
+});
+}
+
 app = express();
 
 app.use(bodyParser.json());
@@ -153,5 +172,8 @@ app.use(function(req, res, next) {
 app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
+app.route('/image')
+  .post(ImageToBase64);
+
 
 app.listen(8043);
