@@ -205,10 +205,9 @@ function startNav() {
      * @returns {*|jQuery} List of valid children
      */
     function getElements(selectedElement) {
-        if (parseNested($(selectedElement).attr("nested")) === 1) {
+        if ($(selectedElement).attr("nested") !== undefined && parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
             currentView = $(selectedElement).children("[role][role!='EMPTY']")[0];
-            console.log("View passed in: " + currentView);
             return getElements(currentView);
         } else {
             return $(selectedElement).children("[role][role!='EMPTY']");
