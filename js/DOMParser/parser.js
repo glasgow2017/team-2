@@ -172,9 +172,11 @@ function getRole(tagName, def) {
 function correctRoles(element) {
     //console.log(element);
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME"].indexOf(element.tagName) > -1) {
         console.log(element);
         setAttr(element, 'role', tag_role[element.tagName]);
+        doForChildren(element, correctRoles);
+        return;
     }
 
     //Remove span elements
@@ -186,10 +188,14 @@ function correctRoles(element) {
     //If element does not have any children but has meaningful text (<div>text</div>)
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
         setAttr(element, 'role', "TEXT");
+        doForChildren(element, correctRoles);
+        return;
     }
     //If elements does not have any children and no meaningful text make them empty
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
+        doForChildren(element, correctRoles);
+        return;
     }
 
     //If any of the above cases then run the keyword search
