@@ -16,7 +16,7 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  console.log("\n\n\n\n"+req.body+"\n\n\n\n\n");
+  // console.log("\n\n\n\n"+req.body+"\n\n\n\n\n");
 
 
   ApiQUery(req.body.text).then(function(dat){
@@ -169,6 +169,10 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+app.use(function(req,res,next){
+  console.log(req.body);
+  next();
+})
 app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
