@@ -31,7 +31,7 @@ const tag_role = {
     "TR": "ROW",
     "TD": "CELL",
     "NOSCRIPT": "EMPTY",
-    "SCRIPT": "EMPTY"
+    "SCRIPT": "EMPTY",
 
 };
 
@@ -47,7 +47,7 @@ const keyword_role = {
  */
 function generateRoles() {
     const body = $('body');
-
+    
     //create the roles of the elements
     backPropagation(body);
     //correct the roles of the input forms
@@ -116,6 +116,10 @@ function backPropagation(element) {
     }
 
     return childrenDescriptions;
+}
+
+function e() {
+    
 }
 
 /**
