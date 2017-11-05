@@ -73,6 +73,10 @@ function startNav() {
                 // Read links out to be pressed
                 responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
                 break;
+            case "BUTTON":
+                // Read buttons label out to know what will happen
+                responsiveVoice.speak(index + ", a button to " + jElement.attr("role_info"));
+                break;
             default:
                 responsiveVoice.speak(index + ", the " + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
         }
@@ -104,10 +108,10 @@ function startNav() {
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
         currentDisplayElements = getElements(newElement);
-        console.log("Current view role: " + $(currentView).attr("role"));
-        console.log("Current view role: " + $(newElement).attr("role"));
-        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
-            $(currentView).attr("role").indexOf("HEADER") >= 0 || $(currentView).attr("role").indexOf("LIST")) {
+
+        var roleAttr = $(currentView).attr("role");
+        if (roleAttr.indexOf("CONTAINER") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
+            roleAttr.indexOf("HEADER") >= 0 || roleAttr.indexOf("LIST") >= 0) {
             console.log("This next thing is a directory!");
             readOutElementList(currentDisplayElements);
         } else {
@@ -143,12 +147,20 @@ function startNav() {
             case "DROPDOWN":
                 processDropDown(element);
                 break;
+            case "BUTTON":
+                processButton(element);
+                break;
             default: // For now just assume it's some kind of input
                 processInput(element);
         }
 
         isListening = false;
         goBack();
+    }
+
+    // TODO: Go to button
+    function processButton(element) {
+
     }
 
     /**
@@ -172,11 +184,16 @@ function startNav() {
         }
     }
 
+    // TODO: Process various types of input
     function processInput(element) {
-        var inputType = element.split(" ")[0];
+        var inputType = $(element).attr("role").split(" ")[0];
 
         switch(inputType) {
             case "TEXT":
+            case "URL":
+            case "SEARCH":
+            case "EMAIL":
+
                 // Textual input
 
         }
@@ -215,13 +232,29 @@ function startNav() {
      * @returns {*|jQuery} List of valid children
      */
     function getElements(selectedElement) {
+        // TODO: this is ok, but it breaks if the only child is not a directory. Need a way to truly collapse the DOM, so in the nested list itself there is the final element
         if ($(selectedElement).attr("nested") !== undefined && parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
             currentView = $(selectedElement).children("[role][role!='EMPTY'][display!='hidden']")[0];
             return getElements(currentView);
         } else {
-            return $(selectedElement).children("[role][role!='EMPTY'][display!='hidden']");
+            return getChildren(selectedElement);
         }
+    }
+
+    function getChildren(element) {
+        var children = $(element).children("[role][role!='EMPTY'][display!='hidden']");
+        var finalVerified = [];
+
+        for (var i = 0; i < children.length; i++) {
+            if ($(children[i]).attr("nested") !== undefined && parseNested($(children[i]).attr("nested")) === 1) {
+                finalVerified.push(getChildren(children[i])[0]);
+            } else {
+                finalVerified.push(children[i]);
+            }
+        }
+
+        return finalVerified;
     }
 
     /**
@@ -244,7 +277,7 @@ function startNav() {
     }
 
     /**
-     * Listens for keypresses
+     * Listens for key presses
      * @param e The key event.
      */
     window.onkeyup = function (e) {
