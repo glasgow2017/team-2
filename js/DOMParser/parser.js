@@ -137,8 +137,6 @@ function emptyBackPropagation(element) {
         //Form smart roles (IMAGE CONTAINER) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
             setAttr(element, 'role', "EMPTY");
-        } else {
-            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
         }
     }
 
@@ -199,7 +197,7 @@ function getRole(tagName, def) {
 function correctRoles(element) {
     //console.log(element);
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME", "LABEL"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
         doForChildren(element, correctRoles);
         return;
