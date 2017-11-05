@@ -39,13 +39,13 @@ function startNav() {
      * @param list The list of elements to read out.
      */
     function readOutElementList(list) {
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
         // Prepare event listening
         isListening = true;
         //console.log("Are we listening now? " + isListening);
 
         // Read out elements
-        responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this container.");
+        responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this section.");
         for (var i = 0; i < list.length; i++) {
             console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
@@ -110,7 +110,7 @@ function startNav() {
         currentDisplayElements = getElements(newElement);
 
         var roleAttr = $(currentView).attr("role");
-        if (roleAttr.indexOf("CONTAINER") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
+        if (roleAttr.indexOf("SECTION") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
             roleAttr.indexOf("HEADER") >= 0 || roleAttr.indexOf("LIST") >= 0) {
             console.log("This next thing is a directory!");
             readOutElementList(currentDisplayElements);
@@ -134,7 +134,7 @@ function startNav() {
         currentDisplayElements = undefined;
 
         // Depending on type, read differently
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
         switch(jElement.attr("role")) {
             case "TEXT":
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
@@ -206,7 +206,7 @@ function startNav() {
         isListeningForSelection = true;
         currentDisplayElements = children;
 
-        responsiveVoice.speak("There are " + children.length + " elements available for selection.");
+        responsiveVoice.speak("There are " + children.length + " items available for selection.");
         if ($(dropdown).val()) {
             responsiveVoice.speak("The currently selected element is " + $(dropdown).val());
         }
