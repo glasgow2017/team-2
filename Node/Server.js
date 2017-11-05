@@ -63,12 +63,13 @@ TopicExtraction = function(req,res){
 
     }
 
+  };
+
     var parsed = TopicParsing(retdata);
     console.log(parsed);
 
     //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(parsed);
-};
 })}
 
 TopicParsing = function(topics){
