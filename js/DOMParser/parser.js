@@ -58,6 +58,8 @@ function generateRoles() {
     correctRoles(body);
     //make a new nesting attribute change based on the updated roles
     forwardPropagation(body);
+
+    emptyBackPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
 }
@@ -118,8 +120,29 @@ function backPropagation(element) {
     return childrenDescriptions;
 }
 
-function e() {
-    
+function emptyBackPropagation(element) {
+    let childrenDescriptions = new Map();
+    if($(element).children().length === 0) {
+        //Set the role of the element (def = EMPTY)
+        setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
+        childrenDescriptions.set(getRole(element.tagName, "EMPTY"), 1);
+    } else {
+        //Count all the children
+        $(element).children().each(function () {
+            childrenDescriptions = mergeMaps(childrenDescriptions, emptyBackPropagation(this));
+        });
+
+        console.log(element, childrenDescriptions);
+
+        //Form smart roles (IMAGE CONTAINER) or normal roles
+        if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
+            setAttr(element, 'role', "EMPTY");
+        } else {
+            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
+        }
+    }
+
+    return childrenDescriptions;
 }
 
 /**
@@ -177,7 +200,6 @@ function correctRoles(element) {
     //console.log(element);
     //Replace special tags
     if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME"].indexOf(element.tagName) > -1) {
-        console.log(element);
         setAttr(element, 'role', tag_role[element.tagName]);
         doForChildren(element, correctRoles);
         return;
