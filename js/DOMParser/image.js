@@ -11,11 +11,11 @@ var request = {
         features: [
             {
                 type: "LABEL_DETECTION",
-                maxResults: 3
+                maxResults: 10
             },
             {
                 type: "LOGO_DETECTION",
-                maxResults: 3
+                maxResults: 10
             },
             {
                 type: "TEXT_DETECTION",
@@ -31,18 +31,13 @@ var request = {
  * @param APIkey the API key
  */
 function makeRequest(APIkey) {
-    $.ajax({
+    return $.ajax({
         type: 'POST',
         url: URL + APIkey,
         data: JSON.stringify(request),
         contentType: "application/json",
         dataType: 'json'
-    }).fail(function () {
-        console.log("Request to API failed");
-    }).done(function (response) {
-        return response
     })
-}
 
 function displayJSONResults(response) {
     console.log(response);
