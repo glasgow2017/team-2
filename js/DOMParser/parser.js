@@ -364,7 +364,7 @@ function buildRoleInfo(element) {
             });
         });
     } else if ($(element).attr('role') === 'TEXT') {
-
+        const text = $(element).text();
     } else {
         let keywordPromises = [];
         for (let child of element.children) {
