@@ -4,6 +4,7 @@
  * Here there are methods used to parse the dome and add alt text
  */
 
+// TODO: Make containers that have nothing in them EMPTY, not CONTAINERs
 const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
@@ -26,8 +27,6 @@ const tag_role = {
     "INPUT": "INPUT",
     "SELECT": "DROPDOWN",
     "OPTION": "OPTION",
-    "VIDEO": "VIDEO",
-
 };
 
 const keyword_role = {
@@ -37,54 +36,13 @@ const keyword_role = {
     "footer": "FOOTER",
 };
 
-/**
- * Main method that parses the DOM
- */
+
 function generateRoles() {
     const body = $('body');
-
-    //create the roles of the elements
     backPropagation(body);
-    //correct the roles of the input forms
     inputFormCategories(body);
-    //make the nested attribute
     forwardPropagation(body);
-    //correct some of the roles
-    correctRoles(body);
-    //make a new nesting attribute change based on the updated roles
-    forwardPropagation(body);
-    //if there is already provided alt, use it
-    transformAltToInfo(body);
-    //remove all hidden elements
-    removeHidden(body);
-}
-
-/**
- * Removes the hidden elements from consideration.
- *
- * @param element
- */
-function removeHidden(element) {
-    if (!$(element).is(":visible")) {
-        setAttr(element, 'role', 'EMPTY');
-        setAttr(element, 'nested', 'EMPTY');
-    }
-    doForChildren(element, removeHidden);
-}
-
-/**
- * Transforms an existing alt attribute to role-info.
- *
- * @param element
- */
-function transformAltToInfo(element) {
-    if ($(element).attr('alt') !== undefined) {
-        const alt = $(element).attr('alt').length;
-        if (alt > 0) {
-            setAttr(element, 'role-info', $(element).attr('alt'));
-        }
-    }
-    doForChildren(element, transformAltToInfo);
+    correctCategories(body);
 }
 
 /**
@@ -95,8 +53,9 @@ function transformAltToInfo(element) {
 function forwardPropagation(element) {
     const alt = getChildrenList(element);
     setAttr(element, 'nested', alt);
-    //Do it for all children
-    doForChildren(element, forwardPropagation);
+    $(element).children().each(function () {
+        forwardPropagation(this);
+    });
 }
 
 /**
@@ -111,12 +70,10 @@ function backPropagation(element) {
         setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
-        //Count all the children
         $(element).children().each(function () {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
 
-        //Form smart roles (IMAGE CONTAINER) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
@@ -159,7 +116,7 @@ function getChildrenList(element) {
 }
 
 /**
- * Get role of an element from the database.
+ * Get role of an element.
  *
  * @param tagName
  * @param def is the default returned role
@@ -173,49 +130,41 @@ function getRole(tagName, def) {
 }
 
 /**
- * Corrects some special cases for roles.
+ * Corrects some special categories.
  *
  * @param element
  * @returns {*}
  */
-function correctRoles(element) {
+function correctCategories(element) {
     //Replace special tags
     if (["SCRIPT","FORM","SELECT"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
-
-    //Remove span elements
-    $(element).find("span").each(function(index) {
-        const text = $(this).html();//get span content
-        $(this).replaceWith(text);//replace all span with just content
-    });
-
-    //If element does not have any children but has meaningful text (<div>text</div>)
-    if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
         setAttr(element, 'role', "TEXT");
         return;
     }
-    //If elements does not have any children and no meaningful text make them empty
-    if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
+    console.log(element);
+    console.log(element.attributes);
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length === 0 && $(element).attr('role') === "TEXT") {
         setAttr(element, 'role', "EMPTY");
         return;
     }
 
-    //If any of the above cases then run the keyword search
     for (let word in keyword_role) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
             setAttr(element, 'role', infer);
         }
     }
-
-    doForChildren(element, correctRoles);
+    $(element).children().each(function () {
+        correctCategories(this);
+    })
 }
 
 /**
- * Create roles for inputs.
- *
+ * Create
  * @param element
  */
 function inputFormCategories(element) {
@@ -273,28 +222,6 @@ function inferRoleFromAttributes(element, keyword) {
 }
 
 /**
- * Returns all elements with a particular role, useful for searches.
- *
- * @param element
- * @param searchString
- * @returns {*|jQuery|HTMLElement}
- */
-function returnSearchElement(element, searchString) {
-    return $(element[0].tagName.toLowerCase() + ' [role="' + searchString.toUpperCase() + '"]');
-}
-
-/**
- * Helping method that executes a function on all children of an element.
- * @param element
- * @param f
- */
-function doForChildren(element, f) {
-    if ($(element).children().length > 0) {
-        $(element).children().each(function() {f(this)});
-    }
-}
-
-/**
  * Clears the map of unwanted tags.
  *
  * @param map
@@ -307,7 +234,6 @@ function clearMap(map) {
     map.delete("BR");
     map.delete("EMPTY");
     map.delete("LABEL");
-    map.delete("IFRAME");
 
     return map;
 }
@@ -320,7 +246,7 @@ function getLabelsFromGoogle(base64Image) {
     promise.done(function (response) {
         let out = response.responses[0];
 
-        let labelAn  notations = out.labelAnnotations;
+        let labelAnnotations = out.labelAnnotations;
 
         out = keywordsFromGoogle(out.labelAnnotations);
 
