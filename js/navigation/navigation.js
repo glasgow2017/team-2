@@ -16,6 +16,7 @@ function startNav() {
     var parentView = undefined;
 
     var isListening = false;
+    var isListeningForSelection = false;
 
     responsiveVoice.cancel();
     responsiveVoice.init();
@@ -30,8 +31,6 @@ function startNav() {
         if (currentView.is("[role_info]")) {
             //console.log("attempting to speak");
             responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
-        } else {
-            responsiveVoice.speak("Team 2 is awesome, but this page is not being helpful...");
         }
     }
 
@@ -57,6 +56,7 @@ function startNav() {
             // Read out back button
             readBackInfo();
         }
+        readRestartInfo();
     }
 
     /**
@@ -104,7 +104,7 @@ function startNav() {
         //console.log("New Current View: " + currentView);
         responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
-            $(currentView).attr("role").indexOf("HEADER")) {
+            $(currentView).attr("role").indexOf("HEADER") >= 0) {
             console.log("This next thing is a directory!");
             currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
@@ -137,6 +137,11 @@ function startNav() {
             case "FORM":
                 processForm(element);
                 break;
+            case "DROPDOWN":
+                processDropDown(element);
+                break;
+            case "OPTION":
+                // Selected an option within a drop down
         }
 
         isListening = false;
@@ -150,16 +155,39 @@ function startNav() {
     function processForm(element) {
         // List out items
         var children = getElements(element);
+        currentDisplayElements = children;
+        isListening = true;
 
-        for (var child in children) {
-            switch($(child).attr("role")) {
+        for (var i = 0; i < children.length; i++) {
+            switch($(children[i]).attr("role")) {
                 case "DROPDOWN":
-                    processDropDown();
+                    responsiveVoice.speak("To select an item from the drop down, press " + i);
                     break;
                 default: // Should be something INPUT
-
+                    //TODO
             }
         }
+    }
+
+    function processDropDown(dropdown) {
+        // List items within the dropdown
+        var children = getElements(dropdown);
+
+        isListeningForSelection = true;
+        currentDisplayElements = children;
+
+        responsiveVoice.speak("There are " + children.length + " elements available for selection.");
+        if ($(dropdown).val()) {
+            responsiveVoice.speak("The currently selected element is " + $(dropdown).val());
+        }
+
+        // List out user options
+        responsiveVoice.speak("To hear details about all elements in the list, press 1.");
+        responsiveVoice.speak("To hear all elements in the list that start with a certain letter, press the starting letter.");
+        responsiveVoice.speak("To select an item from the list, press 2");
+
+        readBackInfo();
+        readRestartInfo();
     }
 
     /**
@@ -183,7 +211,6 @@ function startNav() {
         responsiveVoice.cancel();
 
         currentView = parentView;
-        console.log($(currentView).children("[role]"))
         if ($(currentView).is('body')) {
             parentView = undefined;
         } else {
@@ -192,7 +219,6 @@ function startNav() {
 
         responsiveVoice.speak("You are back in the " + $(currentView).attr("role") + " element.");
 
-        console.log(currentView);
         currentDisplayElements = getElements(currentView);
         readOutElementList((currentDisplayElements));
     }
@@ -219,6 +245,19 @@ function startNav() {
                         isListening = false;
                         enterNewElement(currentDisplayElements[i], currentView);
                         break;
+                    }
+                }
+            }
+        } else if (isListeningForSelection) {
+            if (key === 49) { // User hit 1, read out information about list of possible selections
+
+            } else if (key === 50) { // User hit 2, read out info and let user select something
+
+            } else if (key >= 65 || key <= 90) { // User hit some alphabet character, search for items that start with that letter
+                var values = [];
+                for (var i = 0; i < currentDisplayElements.length; i++) {
+                    if ($(currentDisplayElements[i]).text().startsWith(String.fromCharCode(key))) {
+                        values.push(currentDisplayElements[i]);
                     }
                 }
             }
