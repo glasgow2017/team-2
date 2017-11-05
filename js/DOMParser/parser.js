@@ -239,10 +239,28 @@ function getLabelsFromGoogle(base64Image) {
     let dfr = jQuery.Deferred();
     //todo; take me out
     let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc");
-    promise.done(function (response) {
-        let results;
 
-        let out = keywordsFromGoogle(response.responses[0].labelAnnotations);
+    promise.done(function (response) {
+        let out = response.responses[0];
+
+        let logoAnnotations = out.logoAnnotations;
+        if (logoAnnotations === undefined || logoAnnotations === null) {
+            //do something
+        }
+
+        let labelAnnotations = out.labelAnnotations;
+        if (labelAnnotations === undefined || labelAnnotations === null){
+            //do something
+        } else {
+            out = keywordsFromGoogle();
+        }
+
+        let textAnnotations = out.textAnnotations;
+        if (textAnnotations === undefined || textAnnotations === null){
+            //do something
+        }
+
+        out = keywordsFromGoogle(response.responses[0].labelAnnotations);
         dfr.resolve(out);
     });
     return dfr;
