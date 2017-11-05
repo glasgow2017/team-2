@@ -60,22 +60,8 @@ function generateRoles() {
     forwardPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
-    //remove all hidden elements
-    removeHidden(body);
 }
 
-/**
- * Removes the hidden elements from consideration.
- *
- * @param element
- */
-function removeHidden(element) {
-    if (!$(element).is(":visible")) {
-        setAttr(element, 'role', 'EMPTY');
-        setAttr(element, 'nested', 'EMPTY');
-    }
-    doForChildren(element, removeHidden);
-}
 
 /**
  * Transforms an existing alt attribute to role-info.
@@ -184,10 +170,11 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctRoles(element) {
+    //console.log(element);
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT","NOSCRIPT"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION"].indexOf(element.tagName) > -1) {
+        console.log(element);
         setAttr(element, 'role', tag_role[element.tagName]);
-        return;
     }
 
     //Remove span elements
@@ -199,12 +186,10 @@ function correctRoles(element) {
     //If element does not have any children but has meaningful text (<div>text</div>)
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
         setAttr(element, 'role', "TEXT");
-        return;
     }
     //If elements does not have any children and no meaningful text make them empty
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
-        return;
     }
 
     //If any of the above cases then run the keyword search
@@ -226,11 +211,13 @@ function correctRoles(element) {
 function inputFormCategories(element) {
     $(element).find('input').each(function () {
         const type = $(this).attr('type');
-        setAttr(this, 'role', type.toUpperCase() + " INPUT");
-        //Add label info
-        if (this.id !== undefined && this.id.length > 0) {
-            var info = $('label[for=' + this.id + ']').html();
-            setAttr(this, 'role-info', info);
+        if (type !== undefined) {
+            setAttr(this, 'role', type.toUpperCase() + " INPUT");
+            //Add label info
+            if (this.id !== undefined && this.id.length > 0) {
+                var info = $('label[for=' + this.id + ']').html();
+                setAttr(this, 'role-info', info);
+            }
         }
     })
 }
