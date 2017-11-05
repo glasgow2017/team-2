@@ -36,25 +36,6 @@ function startNav() {
     }
 
     /**
-     * Processes the top level of the body: deprecated.
-     */
-    function processTopLevel() {
-        var pageDivs = $("body").find("[role]");
-        //console.log(pageDivs.length);
-
-        for (var i = 0; i < pageDivs.length; i++) {
-            var divRole = $(pageDivs[i]).attr("role");
-            if (divRole == SEARCH || divRole == FORM || divRole == CONTENTINFO || divRole == COMPLEMENTARY ||
-                divRole == BANNER || divRole == MAIN || divRole == NAVIGATION) {
-                // Add div to list of displayable divs
-                currentDisplayElements.push(pageDivs[i]);
-                //console.log("Displayable Div: " + pageDivs[i]);
-            }
-        }
-
-    }
-
-    /**
      * Reads out the information contained in a list of elements.
      * @param list The list of elements to read out.
      */
