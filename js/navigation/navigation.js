@@ -12,6 +12,8 @@ function startNav() {
     var CONTENT_VOICE = "UK English Male";
 
     var currentDisplayElements = [];
+    var currentReading = [];
+    var count = 0;
     var currentView = $("body");
     var parentView = undefined;
 
@@ -22,7 +24,7 @@ function startNav() {
     responsiveVoice.init();
     readPageDescription();
     currentDisplayElements = getElements(currentView);
-    readOutElementList(currentDisplayElements);
+    readElementList();
 
     /**
      * Reads out the description of the page as a whole.
@@ -31,6 +33,21 @@ function startNav() {
         if (currentView.is("[role_info]")) {
             //console.log("attempting to speak");
             responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
+        }
+    }
+
+    function readElementList() {
+        currentReading = [];
+        for (var i = count * 8; i < currentDisplayElements.length; i++) {
+            if (i % 8 === 0 && i !== 0) {
+                count++;
+                currentReading = [];
+                readOutElementList(currentReading);
+                responsiveVoice.speak("and please press 9 for the next 8 items.");
+                break;
+            }
+
+            currentReading.push(currentDisplayElements[i]);
         }
     }
 
@@ -47,7 +64,6 @@ function startNav() {
         // Read out elements
         responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this section.");
         for (var i = 0; i < list.length; i++) {
-            console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
         }
 
@@ -113,7 +129,7 @@ function startNav() {
         if (roleAttr.indexOf("SECTION") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
             roleAttr.indexOf("HEADER") >= 0 || roleAttr.indexOf("LIST") >= 0) {
             console.log("This next thing is a directory!");
-            readOutElementList(currentDisplayElements);
+            readElementList();
         } else {
             console.log("This next thing is NOT a directory!");
             currentDisplayElements = null;
@@ -291,7 +307,7 @@ function startNav() {
         responsiveVoice.speak("You are back in the " + $(currentView).attr("role") + " element.");
 
         currentDisplayElements = getElements(currentView);
-        readOutElementList((currentDisplayElements));
+        readElementList();
     }
 
     /**
@@ -310,15 +326,20 @@ function startNav() {
                 goBack();
             }
 
-            if (currentDisplayElements !== undefined) {
-                for (var i = 0; i < currentDisplayElements.length; i++) {
+            if (currentReading !== undefined) {
+                for (var i = 0; i < currentReading.length; i++) {
                     if (49 + i === key) {
                         isListening = false;
-                        enterNewElement(currentDisplayElements[i], currentView);
+                        enterNewElement(currentReading[i], currentView);
                         break;
                     }
                 }
             }
+
+            if (key === 57) { // 9 - go to next 8 elements
+                readElementList();
+            }
+
         } else if (isListeningForSelection) {
             if (currentDisplayElements !== undefined) {
                 for (var i = 0; i < currentDisplayElements.length; i++) {
