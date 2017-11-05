@@ -132,8 +132,6 @@ function emptyBackPropagation(element) {
             childrenDescriptions = mergeMaps(childrenDescriptions, emptyBackPropagation(this));
         });
 
-        console.log(element, childrenDescriptions);
-
         //Form smart roles (IMAGE CONTAINER) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
             setAttr(element, 'role', "EMPTY");
