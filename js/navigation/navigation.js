@@ -16,6 +16,7 @@ function startNav() {
     var parentView = undefined;
 
     var isListening = false;
+    var isListeningForSelection = false;
 
     responsiveVoice.cancel();
     responsiveVoice.init();
@@ -30,8 +31,6 @@ function startNav() {
         if (currentView.is("[role_info]")) {
             //console.log("attempting to speak");
             responsiveVoice.speak("This page is about " + $("body").attr("role_info"));
-        } else {
-            responsiveVoice.speak("Team 2 is awesome, but this page is not being helpful...");
         }
     }
 
@@ -40,9 +39,10 @@ function startNav() {
      * @param list The list of elements to read out.
      */
     function readOutElementList(list) {
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         // Prepare event listening
         isListening = true;
-        console.log("Are we listening now? " + isListening);
+        //console.log("Are we listening now? " + isListening);
 
         // Read out elements
         responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this container.");
@@ -52,11 +52,12 @@ function startNav() {
         }
 
 
-        console.log(parentView);
+        //console.log(parentView);
         if (parentView !== undefined) {
             // Read out back button
             readBackInfo();
         }
+        readRestartInfo();
     }
 
     /**
@@ -72,8 +73,12 @@ function startNav() {
                 // Read links out to be pressed
                 responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
                 break;
+            case "BUTTON":
+                // Read buttons label out to know what will happen
+                responsiveVoice.speak(index + ", a button to " + jElement.attr("role_info"));
+                break;
             default:
-                responsiveVoice.speak(index + ", the" + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
+                responsiveVoice.speak(index + ", the " + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
         }
     }
 
@@ -102,11 +107,12 @@ function startNav() {
         currentView = newElement;
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
-        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
-            $(currentView).attr("role").indexOf("HEADER")) {
+        currentDisplayElements = getElements(newElement);
+
+        var roleAttr = $(currentView).attr("role");
+        if (roleAttr.indexOf("CONTAINER") >= 0 || roleAttr.indexOf("MENU") >= 0 ||
+            roleAttr.indexOf("HEADER") >= 0 || roleAttr.indexOf("LIST") >= 0) {
             console.log("This next thing is a directory!");
-            currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
         } else {
             console.log("This next thing is NOT a directory!");
@@ -128,6 +134,7 @@ function startNav() {
         currentDisplayElements = undefined;
 
         // Depending on type, read differently
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         switch(jElement.attr("role")) {
             case "TEXT":
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
@@ -137,10 +144,23 @@ function startNav() {
             case "FORM":
                 processForm(element);
                 break;
+            case "DROPDOWN":
+                processDropDown(element);
+                break;
+            case "BUTTON":
+                processButton(element);
+                break;
+            default: // For now just assume it's some kind of input
+                processInput(element);
         }
 
         isListening = false;
         goBack();
+    }
+
+    // TODO: Go to button
+    function processButton(element) {
+
     }
 
     /**
@@ -150,16 +170,60 @@ function startNav() {
     function processForm(element) {
         // List out items
         var children = getElements(element);
+        currentDisplayElements = children;
+        isListening = true;
 
-        for (var child in children) {
-            switch($(child).attr("role")) {
+        for (var i = 0; i < children.length; i++) {
+            switch($(children[i]).attr("role")) {
                 case "DROPDOWN":
-                    processDropDown();
+                    responsiveVoice.speak("To select an item from the drop down, press " + i);
                     break;
                 default: // Should be something INPUT
-
+                    processInput(children[i]);
             }
         }
+    }
+
+    // TODO: Process various types of input
+    function processInput(element) {
+        var inputType = $(element).attr("role").split(" ")[0];
+
+        switch(inputType) {
+            case "TEXT":
+            case "URL":
+            case "SEARCH":
+            case "EMAIL":
+
+                // Textual input
+
+        }
+    }
+
+    function processDropDown(dropdown) {
+        // List items within the dropdown
+        var children = $(dropdown).children("[role][role!='EMPTY']");
+
+        isListeningForSelection = true;
+        currentDisplayElements = children;
+
+        responsiveVoice.speak("There are " + children.length + " elements available for selection.");
+        if ($(dropdown).val()) {
+            responsiveVoice.speak("The currently selected element is " + $(dropdown).val());
+        }
+
+        // List out user options
+        for (var i = 0; i < children.length; i++) {
+            responsiveVoice("To select " + children[i].text() + ", press " + i);
+        }
+
+        readBackInfo();
+        readRestartInfo();
+    }
+
+    function selectElement(selection) {
+        $(currentView).val(selection);
+        responsiveVoice($(selection).val() + " has been selected.");
+        goBack();
     }
 
     /**
@@ -168,12 +232,29 @@ function startNav() {
      * @returns {*|jQuery} List of valid children
      */
     function getElements(selectedElement) {
-        if (parseNested($(selectedElement).attr("nested")) === 1) {
+        // TODO: this is ok, but it breaks if the only child is not a directory. Need a way to truly collapse the DOM, so in the nested list itself there is the final element
+        if ($(selectedElement).attr("nested") !== undefined && parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
-            return getElements($(selectedElement).children("[role][role!='EMPTY']")[0]);
+            currentView = $(selectedElement).children("[role][role!='EMPTY'][display!='hidden']")[0];
+            return getElements(currentView);
         } else {
-            return $(selectedElement).children("[role][role!='EMPTY']");
+            return getChildren(selectedElement);
         }
+    }
+
+    function getChildren(element) {
+        var children = $(element).children("[role][role!='EMPTY'][display!='hidden']");
+        var finalVerified = [];
+
+        for (var i = 0; i < children.length; i++) {
+            if ($(children[i]).attr("nested") !== undefined && parseNested($(children[i]).attr("nested")) === 1) {
+                finalVerified.push(getChildren(children[i])[0]);
+            } else {
+                finalVerified.push(children[i]);
+            }
+        }
+
+        return finalVerified;
     }
 
     /**
@@ -183,7 +264,6 @@ function startNav() {
         responsiveVoice.cancel();
 
         currentView = parentView;
-        console.log($(currentView).children("[role]"))
         if ($(currentView).is('body')) {
             parentView = undefined;
         } else {
@@ -192,13 +272,12 @@ function startNav() {
 
         responsiveVoice.speak("You are back in the " + $(currentView).attr("role") + " element.");
 
-        console.log(currentView);
         currentDisplayElements = getElements(currentView);
         readOutElementList((currentDisplayElements));
     }
 
     /**
-     * Listens for keypresses
+     * Listens for key presses
      * @param e The key event.
      */
     window.onkeyup = function (e) {
@@ -218,6 +297,16 @@ function startNav() {
                     if (49 + i === key) {
                         isListening = false;
                         enterNewElement(currentDisplayElements[i], currentView);
+                        break;
+                    }
+                }
+            }
+        } else if (isListeningForSelection) {
+            if (currentDisplayElements !== undefined) {
+                for (var i = 0; i < currentDisplayElements.length; i++) {
+                    if (49 + i === key) {
+                        isListeningForSelection = false;
+                        selectElement(currentDisplayElements[i]);
                         break;
                     }
                 }

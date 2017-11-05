@@ -31,7 +31,7 @@ const tag_role = {
     "TR": "ROW",
     "TD": "CELL",
     "NOSCRIPT": "EMPTY",
-    "SCRIPT": "EMPTY"
+    "SCRIPT": "EMPTY",
 
 };
 
@@ -47,7 +47,7 @@ const keyword_role = {
  */
 function generateRoles() {
     const body = $('body');
-
+    
     //create the roles of the elements
     backPropagation(body);
     //correct the roles of the input forms
@@ -58,24 +58,15 @@ function generateRoles() {
     correctRoles(body);
     //make a new nesting attribute change based on the updated roles
     forwardPropagation(body);
+
+    emptyBackPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
     //remove all hidden elements
-    removeHidden(body);
+    debugger;
+    buildAllRoleInfo();
 }
 
-/**
- * Removes the hidden elements from consideration.
- *
- * @param element
- */
-function removeHidden(element) {
-    if (!$(element).is(":visible")) {
-        setAttr(element, 'role', 'EMPTY');
-        setAttr(element, 'nested', 'EMPTY');
-    }
-    doForChildren(element, removeHidden);
-}
 
 /**
  * Transforms an existing alt attribute to role-info.
@@ -126,6 +117,33 @@ function backPropagation(element) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
             setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
+        }
+    }
+
+    return childrenDescriptions;
+}
+
+/**
+ * Special method for eliminating empty elements.
+ *
+ * @param element
+ * @returns {Map}
+ */
+function emptyBackPropagation(element) {
+    let childrenDescriptions = new Map();
+    if($(element).children().length === 0) {
+        //Set the role of the element (def = EMPTY)
+        setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
+        childrenDescriptions.set(getRole(element.tagName, "EMPTY"), 1);
+    } else {
+        //Count all the children
+        $(element).children().each(function () {
+            childrenDescriptions = mergeMaps(childrenDescriptions, emptyBackPropagation(this));
+        });
+
+        //Form smart roles (IMAGE CONTAINER) or normal roles
+        if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
+            setAttr(element, 'role', "EMPTY");
         }
     }
 
@@ -184,9 +202,11 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctRoles(element) {
+    //console.log(element);
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT","NOSCRIPT"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME", "LABEL"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
+        doForChildren(element, correctRoles);
         return;
     }
 
@@ -199,11 +219,13 @@ function correctRoles(element) {
     //If element does not have any children but has meaningful text (<div>text</div>)
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
         setAttr(element, 'role', "TEXT");
+        doForChildren(element, correctRoles);
         return;
     }
     //If elements does not have any children and no meaningful text make them empty
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
+        doForChildren(element, correctRoles);
         return;
     }
 
@@ -226,14 +248,18 @@ function correctRoles(element) {
 function inputFormCategories(element) {
     $(element).find('input').each(function () {
         const type = $(this).attr('type');
-        setAttr(this, 'role', type.toUpperCase() + " INPUT");
-        //Add label info
-        if (this.id !== undefined && this.id.length > 0) {
-            var info = $('label[for=' + this.id + ']').html();
-            setAttr(this, 'role-info', info);
+        if (type !== undefined) {
+            setAttr(this, 'role', type.toUpperCase() + " INPUT");
+            //Add label info
+            if (this.id !== undefined && this.id.length > 0) {
+                var info = $('label[for=' + this.id + ']').html();
+                setAttr(this, 'role-info', info);
+            }
         }
     })
 }
+
+// TODO: Fix text container thing?
 
 /**
  * Combines 2 maps so that they do not have repeating elements.
@@ -347,6 +373,43 @@ function getLabelsFromGoogle(base64Image) {
     return dfr;
 }
 
+function keywordsFromNLP(response) {
+    return new TextKeyword("word", 5, 10);
+}
+
+function sendToNLPServer(text) {
+    let dfr = $.Deferred();
+    $.ajax({
+        type: 'POST',
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-Type", "application/json");
+        },
+        url: "http://34.241.43.16:8043/text",
+        data: JSON.stringify({
+            text: text
+        }),
+        contentType: "application/json",
+        dataType: 'text'
+    }).done(function (response) {
+        dfr.resolve(response);
+    }).fail(function (response) {
+        console.log(response);
+    });
+    return dfr;
+}
+
+/**
+ * Can't believe I just used this code
+ * @param ms
+ */
+function wait(ms){
+    let start = new Date().getTime();
+    let end = start;
+    while(end < start + ms) {
+        end = new Date().getTime();
+    }
+}
+
 /**
  *
  * @param {HTMLElement} element
@@ -364,6 +427,14 @@ function buildRoleInfo(element) {
         });
     } else if ($(element).attr('role') === 'TEXT') {
         const text = $(element).text();
+        sendToNLPServer(text).then(function(response) {
+            let keywords = keywordsFromNLP(response);
+            element.setAttribute("role_info", keywordReduction(keywords).join(","));
+            dfd.resolve(keywords);
+        });
+        // The NLP server doesn't like too many requests in a short period of time, so we have to block this thread for
+        // a while to make sure that the responses arrive
+        wait(550);
     } else {
         let keywordPromises = [];
         for (let child of element.children) {

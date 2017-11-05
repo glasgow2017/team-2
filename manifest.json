@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
 
-  "name": "Code For Good Extension",
+  "name": "Antler Assist",
   "description": "Allows greater accessibility to web pages.",
 
   "content_scripts": [
@@ -13,6 +13,8 @@
       "js": [
         "js/libs/jquery-3.2.1.min.js",
         "js/DOMParser/parser.js",
+        "js/DOMParser/Keyword.js",
+        "js/DOMParser/image.js",
         "js/libs/responsivevoice.js",
         "js/navigation/navigation.js",
         "js/main.js"
@@ -24,9 +26,9 @@
   },
   "browser_action": {
     "default_icon": "res/Icon.png",
-    "default_title": "Accessibility"
+    "default_title": "Antler Assist"
   },
-  "version": "0.0",
+  "version": "0.1",
   "permissions": [
     "activeTab","tabs","<all_urls>"
   ]
