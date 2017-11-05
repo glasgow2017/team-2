@@ -55,9 +55,11 @@ function generateRoles() {
 }
 
 function transformAltToInfo(element) {
-    const alt = $(element).attr('alt').length;
-    if (alt > 0) {
-        setAttr(element, 'role-info', alt);
+    if ($(element).attr('alt') !== undefined) {
+        const alt = $(element).attr('alt').length;
+        if (alt > 0) {
+            setAttr(element, 'role-info', $(element).attr('alt'));
+        }
     }
     doForChildren(element, transformAltToInfo);
 }
@@ -91,7 +93,7 @@ function backPropagation(element) {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
 
-        //Form smart roles (IMAGE CONTAINER)
+        //Form smart roles (IMAGE CONTAINER) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
@@ -160,15 +162,14 @@ function correctRoles(element) {
         return;
     }
 
-    //remove span elements
+    //Remove span elements
     $(element).find("span").each(function(index) {
-        const text = $(this).text();//get span content
+        const text = $(this).html();//get span content
         $(this).replaceWith(text);//replace all span with just content
     });
 
     //If element does not have any children but has meaningful text (<div>text</div>)
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
-        console.log(element);
         setAttr(element, 'role', "TEXT");
         return;
     }
