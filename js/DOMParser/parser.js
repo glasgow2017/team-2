@@ -27,6 +27,11 @@ const tag_role = {
     "SELECT": "DROPDOWN",
     "OPTION": "OPTION",
     "VIDEO": "VIDEO",
+    "TABLE": "TABLE",
+    "TR": "ROW",
+    "TD": "CELL",
+    "NOSCRIPT": "EMPTY",
+    "SCRIPT": "EMPTY"
 
 };
 
@@ -180,7 +185,7 @@ function getRole(tagName, def) {
  */
 function correctRoles(element) {
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
@@ -229,6 +234,8 @@ function inputFormCategories(element) {
         }
     })
 }
+
+// TODO: Fix text container thing?
 
 /**
  * Combines 2 maps so that they do not have repeating elements.
@@ -359,7 +366,7 @@ function buildRoleInfo(element) {
             });
         });
     } else if ($(element).attr('role') === 'TEXT') {
-
+        const text = $(element).text();
     } else {
         let keywordPromises = [];
         for (let child of element.children) {
