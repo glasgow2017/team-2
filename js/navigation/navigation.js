@@ -48,7 +48,6 @@ function startNav() {
         // Read out elements
         responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this section.");
         for (var i = 0; i < list.length; i++) {
-            console.log("Are we listening now? " + isListening);
             readElementInfo(list[i], i + 1);
         }
 
