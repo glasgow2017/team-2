@@ -23,6 +23,7 @@ function startNav() {
     readPageDescription();
     currentDisplayElements = getElements(currentView);
     readOutElementList(currentDisplayElements);
+    //Adding some comments/
 
     /**
      * Reads out the description of the page as a whole.
