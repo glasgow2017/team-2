@@ -241,17 +241,15 @@ function clearMap(map) {
 function getLabelsFromGoogle(base64Image) {
     let dfr = jQuery.Deferred();
     //todo; take me out
-    let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc");
+    let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc", base64Image);
 
     promise.done(function (response) {
         let out = response.responses[0];
 
-        let labelAnnotations = out.labelAnnotations;
-        if (labelAnnotations === undefined || labelAnnotations === null){
-            //do something
-        } else {
-            out = keywordsFromGoogle(out.labelAnnotations);
-        }
+        let labelAn  notations = out.labelAnnotations;
+
+        out = keywordsFromGoogle(out.labelAnnotations);
+
 
         /**
          * come back later when you work
@@ -282,6 +280,7 @@ function buildRoleInfo(element) {
     if (element.nodeName === "IMG") { //$(element).attr('role') === 'IMAGE'/'TEXT'
         toDataURL(element).then(function(base64img){
             getLabelsFromGoogle(base64img).then(function(keywords) {
+                debugger;
                 element.setAttribute("role_info", keywords.join(","));
                 dfd.resolve(keywords);
             });
