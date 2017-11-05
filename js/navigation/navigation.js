@@ -143,8 +143,6 @@ function startNav() {
             case "DROPDOWN":
                 processDropDown(element);
                 break;
-            case "OPTION":
-                // Selected an option within a drop down
         }
 
         isListening = false;
@@ -207,10 +205,10 @@ function startNav() {
     function getElements(selectedElement) {
         if ($(selectedElement).attr("nested") !== undefined && parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
-            currentView = $(selectedElement).children("[role][role!='EMPTY']")[0];
+            currentView = $(selectedElement).children("[role][role!='EMPTY'][display!='hidden']")[0];
             return getElements(currentView);
         } else {
-            return $(selectedElement).children("[role][role!='EMPTY']");
+            return $(selectedElement).children("[role][role!='EMPTY'][display!='hidden']");
         }
     }
 
