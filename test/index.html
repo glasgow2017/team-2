@@ -5,6 +5,8 @@
     <title>Title</title>
     <script src="../js/libs/jquery-3.2.1.min.js"></script>
     <script src="../js/DOMParser/parser.js"></script>
+    <script src="../js/DOMParser/Keyword.js"></script>
+    <script src="../js/DOMParser/image.js"></script>
 </head>
 <body role="home" role_info="some important stuff">
 <div role="container" role_info="a very unhelpful container">
@@ -24,9 +26,12 @@
             <p role="listitem" role_info="item">Some other words to say</p>
         </div>
         <form>
-            <input type="checkbox">
-            <input type="button">
-            <input type="text">
+            <label for="checkbox">Test Checkbox</label>
+            <input id="checkbox" type="checkbox">
+            <label for="button">Test button</label>
+            <input id="button" type="button">
+            <label for="text">Test text</label>
+            <input id="text" type="text">
         </form>
     </div>
     <img src="test_image.jpg">

@@ -23,7 +23,8 @@ const tag_role = {
     "FORM": "FORM",
     "UL": "LIST",
     "OL": "LIST",
-    "LI": "LIST ITEM"
+    "LI": "LIST ITEM",
+    "INPUT": "INPUT"
 };
 
 const keyword_role = {
@@ -70,6 +71,7 @@ function backPropagation(element) {
         $(element).children().each(function () {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
+
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
@@ -136,6 +138,10 @@ function correctCategories(element) {
         setAttr(element, 'role', "EMPTY");
         return;
     }
+    if (element.tagName === "FORM") {
+        setAttr(element, 'role', "FORM");
+        return;
+    }
     if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
         setAttr(element, 'role', "TEXT");
         return;
@@ -148,7 +154,6 @@ function correctCategories(element) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
             setAttr(element, 'role', infer);
-            return infer;
         }
     }
     $(element).children().each(function () {
@@ -164,6 +169,11 @@ function inputFormCategories(element) {
     $(element).find('input').each(function () {
         const type = $(this).attr('type');
         setAttr(this, 'role', type.toUpperCase() + " INPUT");
+        //Add label info
+        if (this.id !== undefined) {
+            var info = $('label[for=' + this.id + ']').html();
+            setAttr(this, 'role-info', info);
+        }
     })
 }
 
@@ -221,35 +231,128 @@ function clearMap(map) {
     map.delete("svg");
     map.delete("BR");
     map.delete("EMPTY");
+    map.delete("LABEL");
 
     return map;
+}
+
+function getLabelsFromGoogle(base64Image) {
+    //TODO: Switch out with call to Henry's API
+    let response = {
+        "responses": [
+            {
+                "labelAnnotations": [
+                    {
+                        "mid": "/m/0bt9lr",
+                        "description": "dog",
+                        "score": 0.97346616
+                    },
+                    {
+                        "mid": "/m/09686",
+                        "description": "vertebrate",
+                        "score": 0.85700572
+                    },
+                    {
+                        "mid": "/m/01pm38",
+                        "description": "clumber spaniel",
+                        "score": 0.84881884
+                    },
+                    {
+                        "mid": "/m/04rky",
+                        "description": "mammal",
+                        "score": 0.847575
+                    },
+                    {
+                        "mid": "/m/02wbgd",
+                        "description": "english cocker spaniel",
+                        "score": 0.75829375
+                    }
+                ]
+            }
+        ]
+    };
+    return keywordsFromGoogle(response.responses[0].labelAnnotations);
 }
 
 /**
  *
  * @param {HTMLElement} element
+ * @return {Promise} promise
  */
 function buildRoleInfo(element) {
     //Handle images
-    if (element.nodeName === "IMG") {
-        let keywords = [new ImgKeyword("keyword 1", 0.8), new ImgKeyword("keyword 2", 0.4)];
-        element.setAttribute("role_info", keywords.join(","));
-        return keywords;
+    let dfd = jQuery.Deferred();
+    if (element.nodeName === "IMG") { //$(element).attr('role') === 'IMAGE'/'TEXT'
+        toDataURL(element).then(function(base64img){
+            getLabelsFromGoogle(base64img);
+            let keywords = [new ImgKeyword(base64img, 0.8), new ImgKeyword("keyword 2", 0.4)];
+            element.setAttribute("role_info", keywords.join(","));
+            //debugger;
+            dfd.resolve(keywords);
+        });
     //TODO: Handle text
-    } else if (element.nodeName === "") {
-
+    // } else if ($(element).attr('role') === 'TEXT') {
     } else {
-        let keywords = [];
+        let keywordPromises = [];
         for (let child of element.children) {
-            keywords.push(buildRoleInfo(child));
+            let promise = buildRoleInfo(child);
+            keywordPromises.push(promise);
         }
-        keywords = keywordReduction(keywords);
-        element.setAttribute("role_info", keywords.join(","))
+        $.when.apply($, keywordPromises).done(function() {
+            // do things that need to wait until ALL gets are done
+            // debugger;
+            // console.log(a, b, c);
+            // keywordReduction(keywords);
+            // element.setAttribute("role_info", keywords.join(","));
+            let keywords = [];
+            if (arguments.length > 0) {
+                for (let i = 0; i < arguments.length; i++) {
+                    for (let img = 0; img < arguments[i].length; img ++) {
+                        keywords.push(arguments[i][img]);
+                    }
+                    // debugger;
+                }
+            }
+            dfd.resolve(keywords);
+        });
     }
+    return dfd.promise();
+}
+
+/**
+ * https://stackoverflow.com/a/20285053
+ * @param image
+ * @param callback
+ * @param outputFormat
+ */
+function toDataURL(image, outputFormat) {
+    let dfd = jQuery.Deferred();
+    let img = new Image();
+    img.crossOrigin = 'Anonymous';
+    // img.onload = function() {
+        let canvas = document.createElement('CANVAS');
+        let ctx = canvas.getContext('2d');
+        let dataURL;
+        canvas.height = this.naturalHeight;
+        canvas.width = this.naturalWidth;
+        ctx.drawImage(image, 0, 0);
+        dataURL = canvas.toDataURL(outputFormat);
+        canvas.remove();
+        dfd.resolve(dataURL);
+    // };
+    // img.src = image;
+    // if (img.complete || img.complete === undefined) {
+    //     img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+    //     img.src = image;
+    // }
+    return dfd.promise();
 }
 
 function buildAllRoleInfo() {
-    buildRoleInfo($('body'));
+    // debugger;
+    buildRoleInfo($('body')[0]).then(function(a) {
+        console.log(a);
+    });
 }
 
 /**

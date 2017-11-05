@@ -14,8 +14,20 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  data  = ApiQUery(req.body.text);
-  res.send(data);
+  var data  = ApiQUery(req.body.text);  var i= 0;
+    var retdata = [];
+    for (var element of data.entity_list){
+      if (element.semtheme_list !== null) {
+        for each (theme in element.semtheme_list){
+          retdata.push({});
+          retdata[i].name = theme.type.split(">").slice(-1).pop();
+          retdata[i].relevance = element.relevance;
+          i++;
+        }
+
+      }
+    }
+  res.send(retdata);
 }
 
 ApiQUery = function(text){
