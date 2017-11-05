@@ -161,7 +161,7 @@ function ImageToBase64(req,res){
 }
 
 app = express();
-
+app.use(express.static('website'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(function(req, res, next) {
