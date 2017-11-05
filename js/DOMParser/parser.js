@@ -26,6 +26,8 @@ const tag_role = {
     "INPUT": "INPUT",
     "SELECT": "DROPDOWN",
     "OPTION": "OPTION",
+    "VIDEO": "VIDEO",
+
 };
 
 const keyword_role = {
@@ -40,6 +42,7 @@ const keyword_role = {
  */
 function generateRoles() {
     const body = $('body');
+
     //create the roles of the elements
     backPropagation(body);
     //correct the roles of the input forms
@@ -52,6 +55,21 @@ function generateRoles() {
     forwardPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
+    //remove all hidden elements
+    removeHidden(body);
+}
+
+/**
+ * Removes the hidden elements from consideration.
+ *
+ * @param element
+ */
+function removeHidden(element) {
+    if (!$(element).is(":visible")) {
+        setAttr(element, 'role', 'EMPTY');
+        setAttr(element, 'nested', 'EMPTY');
+    }
+    doForChildren(element, removeHidden);
 }
 
 /**
