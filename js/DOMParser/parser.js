@@ -123,6 +123,12 @@ function backPropagation(element) {
     return childrenDescriptions;
 }
 
+/**
+ * Special method for eliminating empty elements.
+ *
+ * @param element
+ * @returns {Map}
+ */
 function emptyBackPropagation(element) {
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
