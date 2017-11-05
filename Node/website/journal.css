@@ -1,0 +1,32 @@
+#main {
+    margin-top: 80px;
+}
+
+#new_Post {
+    border: 1px black solid;
+    background-color: #fff;
+    padding-left: 15%;
+    padding-right: 15%;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#main a:link {
+  text-decoration: none;
+  color: #000;
+}
+
+#main a:visited {
+  text-decoration: none;
+  color: #000;
+}
+
+#main a:hover {
+  text-decoration: none;
+  background-color: #eee;
+}
+
+#main a:active {
+  text-decoration: none;
+  background-color: #aaa;
+}

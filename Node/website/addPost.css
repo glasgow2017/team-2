@@ -1,0 +1,46 @@
+#main {
+    margin-top: 80px;
+    height: 100%;
+}
+
+#addNewPost {
+    width: 50%;
+    margin-left: 25%;
+    height: auto;
+    text-align: left;
+}
+
+#title {
+    width: 50%;
+    font-size: 18pt;
+    margin-bottom: 20px;
+    border:none;
+    border-bottom: 1px black solid;
+    float: left;
+}
+
+#content {
+    width: 99%;
+    height: 700px;
+    max-height: none;
+    font-size: 12pt;
+    margin-bottom: 10px;
+    padding: 5px;
+    font-family: "Roboto";
+    resize:none;
+    border: none;
+    border-top: 1px black solid;
+}
+
+#submit {
+    float:right;
+    font-size: 16pt;
+    margin: 0;
+    border: 1px solid black;
+    margin-bottom: 20px;
+    background-color: white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 31px;
+    padding-right: 31px;
+}

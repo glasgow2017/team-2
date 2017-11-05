@@ -1,0 +1,12 @@
+#main {
+    padding-top: 50px;
+    text-align: left;
+    margin-left: 20%;
+}
+
+/*Form Styles*/
+#login_form input.text {
+    border: none;
+    border-bottom: 1px solid black;
+    font-size: 20pt;
+}
