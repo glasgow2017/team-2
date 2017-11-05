@@ -256,8 +256,6 @@ function inputFormCategories(element) {
     })
 }
 
-// TODO: Fix text section thing?
-
 /**
  * Combines 2 maps so that they do not have repeating elements.
  *
