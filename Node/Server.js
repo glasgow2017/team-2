@@ -15,7 +15,7 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  // console.log("\n\n\n\n"+req.body["text"]+"\n\n\n\n\n");
+  console.log("\n\n\n\n"+req.body+"\n\n\n\n\n");
 
 
   ApiQUery(req.body.text).then(function(dat){
@@ -72,9 +72,11 @@ TopicExtraction = function(req,res){
 })}
 
 TopicParsing = function(topics){
+  console.log("topicparsing");
   var li = [];
   var k = 0;
   for(var topic of topics){
+    console.log(topic.name+" in for loop");
     var spot = listCheck(li,topic.name);
     if ( spot >= 0) {
       li[spot].count++;
@@ -91,6 +93,7 @@ TopicParsing = function(topics){
     }
   }
   maxCount = findMaxCount(li);
+  console.log("maxcount");
   for(var element of li){
     element.relevance =  element.relevance / (maxCount+1 - element.count) / 100;
   }
