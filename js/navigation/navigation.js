@@ -174,7 +174,7 @@ function startNav() {
 
     function processDropDown(dropdown) {
         // List items within the dropdown
-        var children = $(dropdown).children("[role='OPTION']");
+        var children = $(dropdown).children("[role][role!='EMPTY']");
 
         isListeningForSelection = true;
         currentDisplayElements = children;
