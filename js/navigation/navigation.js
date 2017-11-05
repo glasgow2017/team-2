@@ -174,7 +174,7 @@ function startNav() {
 
     function processDropDown(dropdown) {
         // List items within the dropdown
-        var children = getElements(dropdown);
+        var children = $(dropdown).children("[role='OPTION']");
 
         isListeningForSelection = true;
         currentDisplayElements = children;
@@ -185,12 +185,18 @@ function startNav() {
         }
 
         // List out user options
-        responsiveVoice.speak("To hear details about all elements in the list, press 1.");
-        responsiveVoice.speak("To hear all elements in the list that start with a certain letter, press the starting letter.");
-        responsiveVoice.speak("To select an item from the list, press 2");
+        for (var i = 0; i < children.length; i++) {
+            responsiveVoice("To select " + children[i].text() + ", press " + i);
+        }
 
         readBackInfo();
         readRestartInfo();
+    }
+
+    function selectElement(selection) {
+        $(currentView).val(selection);
+        responsiveVoice($(selection).val() + " has been selected.");
+        goBack();
     }
 
     /**
@@ -254,15 +260,12 @@ function startNav() {
                 }
             }
         } else if (isListeningForSelection) {
-            if (key === 49) { // User hit 1, read out information about list of possible selections
-
-            } else if (key === 50) { // User hit 2, read out info and let user select something
-
-            } else if (key >= 65 || key <= 90) { // User hit some alphabet character, search for items that start with that letter
-                var values = [];
+            if (currentDisplayElements !== undefined) {
                 for (var i = 0; i < currentDisplayElements.length; i++) {
-                    if ($(currentDisplayElements[i]).text().startsWith(String.fromCharCode(key))) {
-                        values.push(currentDisplayElements[i]);
+                    if (49 + i === key) {
+                        isListeningForSelection = false;
+                        selectElement(currentDisplayElements[i]);
+                        break;
                     }
                 }
             }
