@@ -161,7 +161,7 @@ function ImageToBase64(req,res){
 }
 
 app = express();
-app.use(express.static('website'))
+app.use(express.static('website'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(function(req, res, next) {
@@ -176,7 +176,7 @@ app.use(function(req,res,next){
 app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
-app.route('/image')
+app.route('/imag')
   .post(ImageToBase64);
 
 
