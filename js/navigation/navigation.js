@@ -23,6 +23,9 @@ function startNav() {
     currentDisplayElements = getElements(currentView);
     readOutElementList(currentDisplayElements);
 
+    /**
+     * Reads out the description of the page as a whole.
+     */
     function readPageDescription() {
         if (currentView.is("[role_info]")) {
             //console.log("attempting to speak");
@@ -32,22 +35,10 @@ function startNav() {
         }
     }
 
-    function processTopLevel() {
-        var pageDivs = $("body").find("[role]");
-        //console.log(pageDivs.length);
-
-        for (var i = 0; i < pageDivs.length; i++) {
-            var divRole = $(pageDivs[i]).attr("role");
-            if (divRole == SEARCH || divRole == FORM || divRole == CONTENTINFO || divRole == COMPLEMENTARY ||
-                divRole == BANNER || divRole == MAIN || divRole == NAVIGATION) {
-                // Add div to list of displayable divs
-                currentDisplayElements.push(pageDivs[i]);
-                //console.log("Displayable Div: " + pageDivs[i]);
-            }
-        }
-
-    }
-
+    /**
+     * Reads out the information contained in a list of elements.
+     * @param list The list of elements to read out.
+     */
     function readOutElementList(list) {
         // Prepare event listening
         isListening = true;
@@ -68,6 +59,11 @@ function startNav() {
         }
     }
 
+    /**
+     * Reads out the information for a particular element
+     * @param element The element to read out.
+     * @param index The selection index for an element
+     */
     function readElementInfo(element, index) {
         // Read info
         var jElement = $(element);
@@ -81,14 +77,25 @@ function startNav() {
         }
     }
 
+    /**
+     * Read out the line to inform the user how to go back.
+     */
     function readBackInfo() {
         responsiveVoice.speak("To go back, press 0");
     }
 
+    /**
+     * Read the user the information on how to restart the message
+     */
     function readRestartInfo() {
         responsiveVoice.speak("To restart this message, press r");
     }
 
+    /**
+     * Enters into a new element with a certain parent.
+     * @param newElement The view or element to go into and see
+     * @param newParent The parent of the new element
+     */
     function enterNewElement(newElement, newParent) {
         responsiveVoice.cancel();
         parentView = newParent;
@@ -96,7 +103,8 @@ function startNav() {
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
         responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
-        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0) {
+        if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
+            $(currentView).attr("role").indexOf("HEADER")) {
             console.log("This next thing is a directory!");
             currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
@@ -108,6 +116,10 @@ function startNav() {
 
     }
 
+    /**
+     * Gives a more detailed expose of a particular element. Or in the case of forms, allows a user to input.
+     * @param element
+     */
     // TODO: Add support for input elements (Forms, buttons)
     function readElement(element) {
         var jElement = $(element);
@@ -120,8 +132,6 @@ function startNav() {
             case "TEXT":
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
                 break;
-            case "HEADER":
-                break;
             case "IMAGE":
                 break;
             case "FORM":
@@ -133,11 +143,30 @@ function startNav() {
         goBack();
     }
 
+    /**
+     * Processes a form, allowing the user to input where necessary.
+     * @param element The form element to process.
+     */
     function processForm(element) {
         // List out items
+        var children = getElements(element);
 
+        for (var child in children) {
+            switch($(child).attr("role")) {
+                case "DROPDOWN":
+                    processDropDown();
+                    break;
+                default: // Should be something INPUT
+
+            }
+        }
     }
 
+    /**
+     * Returns the valid child elements of this object
+     * @param selectedElement The object to get the children for
+     * @returns {*|jQuery} List of valid children
+     */
     function getElements(selectedElement) {
         if (parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
@@ -147,6 +176,9 @@ function startNav() {
         }
     }
 
+    /**
+     * Goes back a level.
+     */
     function goBack() {
         responsiveVoice.cancel();
 
@@ -165,6 +197,10 @@ function startNav() {
         readOutElementList((currentDisplayElements));
     }
 
+    /**
+     * Listens for keypresses
+     * @param e The key event.
+     */
     window.onkeyup = function (e) {
         var key = e.keyCode ? e.keyCode : e.which;
         if (isListening) {
@@ -195,6 +231,11 @@ function startNav() {
         }
     };
 
+    /**
+     * Parses a "nested" attribute value to get the number of nested elements
+     * @param line The value of the "nested" attribute
+     * @returns {number} The total number of nested elements.
+     */
     function parseNested(line) {
         var total = 0;
         var splitLine = line.split(",");

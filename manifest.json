@@ -19,6 +19,9 @@
       ]
     }
   ],
+  "background": {
+      "scripts": ["js/libs/jquery-3.2.1.min.js"]
+  },
   "browser_action": {
     "default_icon": "res/Icon.png",
     "default_title": "Accessibility"
