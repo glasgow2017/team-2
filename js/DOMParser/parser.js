@@ -24,7 +24,9 @@ const tag_role = {
     "UL": "LIST",
     "OL": "LIST",
     "LI": "LIST ITEM",
-    "INPUT": "INPUT"
+    "INPUT": "INPUT",
+    "SELECT": "DROPDOWN",
+    "OPTION": "OPTION"
 };
 
 const keyword_role = {
@@ -106,7 +108,7 @@ function getChildrenList(element) {
     if (map.size > 0) {
         result = "";
         for (let [key, value] of map) {
-            result += (value + " " + key + ",");
+            result += (value + " " + key + (value > 1 ? "S" : "") + ",");
         }
     }
 
@@ -134,12 +136,9 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctCategories(element) {
-    if (element.tagName === "SCRIPT") {
-        setAttr(element, 'role', "EMPTY");
-        return;
-    }
-    if (element.tagName === "FORM") {
-        setAttr(element, 'role', "FORM");
+    //Replace special tags
+    if (["SCRIPT","FORM","SELECT"].indexOf(element.tagName) > -1) {
+        setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
     if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
