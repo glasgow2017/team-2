@@ -95,6 +95,7 @@ app = express();
 app.use(bodyParser.json());
 
 app.route('/text')
+  .get("hello"),
   .put(TopicExtraction);
 
 app.listen(8042);
