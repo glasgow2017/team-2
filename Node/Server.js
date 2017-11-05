@@ -99,7 +99,7 @@ ApiQUery = function(text){
 app = express();
 
 app.use(bodyParser.json());
-
+app.use(bodyParser.urlencoded());
 app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
