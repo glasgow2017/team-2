@@ -1,6 +1,6 @@
 var imgList = ["A yellow house at the end of the street", "clouds in a blue sky", "Terraced houses on a blue sky day", "A close up image of pine needles", "An image of Keep calm and love canada",
 "man with a crazy face"];
-var currentImg = firstImg;
+var currentImg = imgList[0];
 
 var imgsPath = "img/testing/"
 
@@ -64,11 +64,11 @@ var images = new Array();
 
 function preloadImgs(){
 
-  for(i = firstImg; i <= lastImg; i++){
+  for(var i = 0; i < imgList.length; i++){
 
-    images[i - firstImg] = new Image();
+    images[i] = new Image();
 
-    images[i - firstImg].src = imgsPath + i + imgExtn;
+    images[i].src = imgsPath + imgList[i] + imgExtn;
 
   }
 
