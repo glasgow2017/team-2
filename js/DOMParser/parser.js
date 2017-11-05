@@ -75,7 +75,7 @@ function transformAltToInfo(element) {
     if ($(element).attr('alt') !== undefined) {
         const alt = $(element).attr('alt').length;
         if (alt > 0) {
-            setAttr(element, 'role-info', $(element).attr('alt'));
+            setAttr(element, 'role_info', $(element).attr('alt'));
         }
     }
     doForChildren(element, transformAltToInfo);
