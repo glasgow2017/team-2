@@ -367,8 +367,6 @@ function buildRoleInfo(element) {
             keywordPromises.push(promise);
         }
         $.when.apply($, keywordPromises).done(function() {
-            // keywordReduction(keywords);
-            // element.setAttribute("role_info", keywords.join(","));
             let keywords = [];
             if (arguments.length > 0) {
                 for (let i = 0; i < arguments.length; i++) {
@@ -411,8 +409,35 @@ function setAttr(element, attr, alt_text) {
  * @returns {Array.<*>}
  */
 function keywordReduction(keywords) {
-    let limit = 10;
+    let limit = 5;
     keywords = [];
+    //sort by word to merge identical labels
+    keywords.sort(function (a, b) {
+        if (! (a instanceof Keyword)) {
+            if (!(a instanceof Keyword)) {
+                throw "Illegal argument"
+            }
+            if (!(b instanceof Keyword)) {
+                throw "Illegal argument"
+            }
+        }
+        if (a.getWord() > b.getWord()) return -1;
+        if (a.getWord() < b.getWord()) return 1;
+        return 0;
+    });
+    //merge identical labels
+    let newKeywords = [];
+    for (let i = 0; i<keywords.length; i++) {
+        if (newKeywords.length === 0) {
+            newKeywords.push(keywords[i]);
+        } else if (newKeywords[newKeywords.length-1].word === keywords[i].word) {
+            newKeywords[newKeywords.length-1].rating += keywords[i].rating;
+        } else {
+            newKeywords.push(keywords[i]);
+        }
+    }
+    keywords = newKeywords;
+    //sort by proper metric
     keywords.sort(Keyword.compareTo);
     return keywords.slice(0, limit);
 }
