@@ -18,6 +18,9 @@ TopicExtraction = function(req,res){
   var data  = ApiQUery(req.body.text);
   var i= 0;
     var retdata = [];
+    if (data.entity_list === null){
+      res.status(404).send("unknown data");
+    }
     for (var element of data.entity_list){
       if (element.semtheme_list !== null) {
         for(var theme of element.semtheme_list){
@@ -87,7 +90,9 @@ ApiQUery = function(text){
   text+
   "&tt=a&uw=y";
 
-  return https.get(query);
+  var result = https.get(query)
+  console.log(result);
+  return result;
 }
 
 app = express();
