@@ -4,7 +4,6 @@
  * Here there are methods used to parse the dome and add alt text
  */
 
-// TODO: Make containers that have nothing in them EMPTY, not CONTAINERs
 const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
@@ -36,13 +35,31 @@ const keyword_role = {
     "footer": "FOOTER",
 };
 
-
+/**
+ * Main method that parses the DOM
+ */
 function generateRoles() {
     const body = $('body');
+    //create the roles of the elements
     backPropagation(body);
+    //correct the roles of the input forms
     inputFormCategories(body);
+    //make the nested attribute
     forwardPropagation(body);
-    correctCategories(body);
+    //correct some of the roles
+    correctRoles(body);
+    //make a new nesting attribute change based on the updated roles
+    forwardPropagation(body);
+    //if there is already provided alt, use it
+    transformAltToInfo(body);
+}
+
+function transformAltToInfo(element) {
+    const alt = $(element).attr('alt').length;
+    if (alt > 0) {
+        setAttr(element, 'role-info', alt);
+    }
+    doForChildren(element, transformAltToInfo);
 }
 
 /**
@@ -53,9 +70,8 @@ function generateRoles() {
 function forwardPropagation(element) {
     const alt = getChildrenList(element);
     setAttr(element, 'nested', alt);
-    $(element).children().each(function () {
-        forwardPropagation(this);
-    });
+    //Do it for all children
+    doForChildren(element, forwardPropagation);
 }
 
 /**
@@ -70,10 +86,12 @@ function backPropagation(element) {
         setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
+        //Count all the children
         $(element).children().each(function () {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
 
+        //Form smart roles (IMAGE CONTAINER)
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
@@ -116,7 +134,7 @@ function getChildrenList(element) {
 }
 
 /**
- * Get role of an element.
+ * Get role of an element from the database.
  *
  * @param tagName
  * @param def is the default returned role
@@ -130,12 +148,12 @@ function getRole(tagName, def) {
 }
 
 /**
- * Corrects some special categories.
+ * Corrects some special cases for roles.
  *
  * @param element
  * @returns {*}
  */
-function correctCategories(element) {
+function correctRoles(element) {
     //Replace special tags
     if (["SCRIPT","FORM","SELECT"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
@@ -148,30 +166,32 @@ function correctCategories(element) {
         $(this).replaceWith(text);//replace all span with just content
     });
 
-    if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
+    //If element does not have any children but has meaningful text (<div>text</div>)
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
+        console.log(element);
         setAttr(element, 'role', "TEXT");
         return;
     }
-    console.log(element);
-    console.log(element.attributes);
-    if ($(element).attr('nested') === "EMPTY" && $(element).text().length === 0 && $(element).attr('role') === "TEXT") {
+    //If elements does not have any children and no meaningful text make them empty
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
         return;
     }
 
+    //If any of the above cases then run the keyword search
     for (let word in keyword_role) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
             setAttr(element, 'role', infer);
         }
     }
-    $(element).children().each(function () {
-        correctCategories(this);
-    })
+
+    doForChildren(element, correctRoles);
 }
 
 /**
- * Create
+ * Create roles for inputs.
+ *
  * @param element
  */
 function inputFormCategories(element) {
@@ -228,6 +248,16 @@ function inferRoleFromAttributes(element, keyword) {
     return undefined;
 }
 
+/**
+ * Helping method that executes a function on all children of an element.
+ * @param element
+ * @param f
+ */
+function doForChildren(element, f) {
+    if ($(element).children().length > 0) {
+        $(element).children().each(function() {f(this)});
+    }
+}
 /**
  * Clears the map of unwanted tags.
  *
