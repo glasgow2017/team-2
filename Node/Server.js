@@ -42,6 +42,27 @@ TopicExtraction = function(req,res){
 
       }
     }
+
+
+    if (data.entity_list === null){
+      res.status(404).send("unknown data");
+    }
+    // console.log(data.concept_list);
+    for (var element of data.entity_list){
+      if (element.semtheme_list !== undefined) {
+        // var obj = JSON.parse(element.semtheme_list);
+        // console.log(element.semtheme_list);
+        // console.log("\^list");
+      for(var theme of element.semtheme_list){
+        retdata.push({});
+        retdata[i].name = theme.type.split(">").slice(-1).pop();
+        retdata[i].relevance = element.relevance;
+        i++;
+        console.log(retdata);
+      }
+
+    }
+
     var parsed = TopicParsing(retdata);
     //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(parsed);
