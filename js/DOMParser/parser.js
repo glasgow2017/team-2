@@ -3,6 +3,8 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
+
+// TODO: Make containers that have nothing in them EMPTY, not CONTAINERs
 const tag_role = {
     "HEADER": "HEADER",
     "FOOTER": "FOOTER",
@@ -21,7 +23,10 @@ const tag_role = {
     "FORM": "FORM",
     "UL": "LIST",
     "OL": "LIST",
-    "LI": "LIST ITEM"
+    "LI": "LIST ITEM",
+    "INPUT": "INPUT",
+    "SELECT": "DROPDOWN",
+    "OPTION": "OPTION"
 };
 
 const keyword_role = {
@@ -68,6 +73,7 @@ function backPropagation(element) {
         $(element).children().each(function () {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
+
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
@@ -102,7 +108,7 @@ function getChildrenList(element) {
     if (map.size > 0) {
         result = "";
         for (let [key, value] of map) {
-            result += (value + " " + key + ",");
+            result += (value + " " + key + (value > 1 ? "S" : "") + ",");
         }
     }
 
@@ -130,8 +136,9 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctCategories(element) {
-    if (element.tagName === "SCRIPT") {
-        setAttr(element, 'role', "EMPTY");
+    //Replace special tags
+    if (["SCRIPT","FORM","SELECT"].indexOf(element.tagName) > -1) {
+        setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
     if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
@@ -146,7 +153,6 @@ function correctCategories(element) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
             setAttr(element, 'role', infer);
-            return infer;
         }
     }
     $(element).children().each(function () {
@@ -162,6 +168,11 @@ function inputFormCategories(element) {
     $(element).find('input').each(function () {
         const type = $(this).attr('type');
         setAttr(this, 'role', type.toUpperCase() + " INPUT");
+        //Add label info
+        if (this.id !== undefined) {
+            var info = $('label[for=' + this.id + ']').html();
+            setAttr(this, 'role-info', info);
+        }
     })
 }
 
@@ -219,6 +230,7 @@ function clearMap(map) {
     map.delete("svg");
     map.delete("BR");
     map.delete("EMPTY");
+    map.delete("LABEL");
 
     return map;
 }
