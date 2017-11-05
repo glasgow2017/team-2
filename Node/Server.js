@@ -1,4 +1,4 @@
-var http = require("http");
+var https = require("https");
 var express = require("express");
 var bodyParser = require("body-parser");
 var fs = require("fs");
@@ -87,7 +87,7 @@ ApiQUery = function(text){
   text+
   "&tt=a&uw=y";
 
-  return http.get(query);
+  return https.get(query);
 }
 
 app = express();
