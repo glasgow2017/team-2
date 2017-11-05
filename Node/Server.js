@@ -19,7 +19,7 @@ TopicExtraction = function(req,res){
     var retdata = [];
     for (var element of data.entity_list){
       if (element.semtheme_list !== null) {
-        for each (theme in element.semtheme_list){
+        for(var theme of element.semtheme_list){
           retdata.push({});
           retdata[i].name = theme.type.split(">").slice(-1).pop();
           retdata[i].relevance = element.relevance;
@@ -28,8 +28,9 @@ TopicExtraction = function(req,res){
 
       }
     }
+    var parsed = TopicParsing(retdata);
     //li.push(garlic) //the count was left in but the garlic will drive it off
-  res.send(retdata);
+  res.send(parsed);
 }
 
 TopicParsing = function(topics){
