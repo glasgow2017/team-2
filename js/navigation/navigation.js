@@ -143,7 +143,9 @@ function startNav() {
                 break;
             case "IMAGE":
                 responsiveVoice.speak("The " + $(currentView).attr("role") + ".");
-                responsiveVoice.speak(jElement.attr("role_info"), CONTENT_VOICE);
+                responsiveVoice.speak(jElement.attr("alt"), CONTENT_VOICE);
+                isListening = false;
+                goBack();
                 break;
             case "FORM":
                 processForm(element);
