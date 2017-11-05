@@ -26,7 +26,7 @@ const tag_role = {
     "LI": "LIST ITEM",
     "INPUT": "INPUT",
     "SELECT": "DROPDOWN",
-    "OPTION": "OPTION"
+    "OPTION": "OPTION",
 };
 
 const keyword_role = {
@@ -40,9 +40,9 @@ const keyword_role = {
 function generateRoles() {
     const body = $('body');
     backPropagation(body);
-    correctCategories(body);
     inputFormCategories(body);
     forwardPropagation(body);
+    correctCategories(body);
 }
 
 /**
@@ -145,10 +145,13 @@ function correctCategories(element) {
         setAttr(element, 'role', "TEXT");
         return;
     }
-    if ($(element).attr('nested') === "EMPTY" && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
+    console.log(element);
+    console.log(element.attributes);
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length === 0 && $(element).attr('role') === "TEXT") {
         setAttr(element, 'role', "EMPTY");
         return;
     }
+
     for (let word in keyword_role) {
         const infer = inferRoleFromAttributes(element, word);
         if (infer !== undefined) {
