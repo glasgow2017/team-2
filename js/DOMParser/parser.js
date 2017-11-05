@@ -112,11 +112,11 @@ function backPropagation(element) {
             childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
 
-        //Form smart roles (IMAGE CONTAINER) or normal roles
+        //Form smart roles (IMAGE SECTION) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
-            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
+            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "SECTION") + " SECTION");
         } else {
-            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
+            setAttr(element, 'role', getRole(element.tagName, "SECTION"));
         }
     }
 
@@ -141,7 +141,7 @@ function emptyBackPropagation(element) {
             childrenDescriptions = mergeMaps(childrenDescriptions, emptyBackPropagation(this));
         });
 
-        //Form smart roles (IMAGE CONTAINER) or normal roles
+        //Form smart roles (IMAGE SECTION) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
             setAttr(element, 'role', "EMPTY");
         }
@@ -259,7 +259,7 @@ function inputFormCategories(element) {
     })
 }
 
-// TODO: Fix text container thing?
+// TODO: Fix text section thing?
 
 /**
  * Combines 2 maps so that they do not have repeating elements.
