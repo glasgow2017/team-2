@@ -28,6 +28,7 @@ TopicExtraction = function(req,res){
 
       }
     }
+    //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(retdata);
 }
 
@@ -50,15 +51,21 @@ TopicParsing = function(topics){
       k++;
     }
   }
-
+  maxCount = findMaxCount(li);
+  for(var element of li){
+    element.relevance =  element.relevance / (maxCount+1 - element.count) / 100;
+  }
   return li;
 }
 
-findMax(li){
-  var max = {count:"-10000",name:"unknown",relevance:"0"}
-  for(var element of list){
-    
+findMaxCount = function(li){
+  var max = {count:"-10000",name:"unknown",relevance:"0"};
+  for(var element of li){
+    if (element.count > max.count) {
+      max = element;
+    }
   }
+  return max.count;
 }
 
 listCheck = function(list, name){
