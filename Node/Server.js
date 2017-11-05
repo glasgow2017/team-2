@@ -27,7 +27,7 @@ TopicExtraction = function(req,res){
 
       }
     }
-  res.send(data);
+  res.send(retdata);
 }
 
 ApiQUery = function(text){
