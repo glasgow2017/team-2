@@ -44,12 +44,20 @@ TopicParsing = function(topics){
     }
     else {
       li.push({});
-      console.log(li);
       li[k].name = topic.name;
       li[k].count = 1;
       li[k].relevance = topic.relevance;
       k++;
     }
+  }
+
+  return li;
+}
+
+findMax(li){
+  var max = {count:"-10000",name:"unknown",relevance:"0"}
+  for(var element of list){
+    
   }
 }
 
