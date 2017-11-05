@@ -14,7 +14,7 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  console.log("\n\n\n\n"+req.body.get("text")+"\n\n\n\n\n");
+  console.log("\n\n\n\n"+req.body.["text"]+"\n\n\n\n\n");
 
   var data  = ApiQUery(req.body.text);
   var i= 0;
@@ -104,4 +104,4 @@ app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
 
-app.listen(8042);
+app.listen(8043);
