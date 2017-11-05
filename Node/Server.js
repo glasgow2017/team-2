@@ -96,6 +96,6 @@ app.use(bodyParser.json());
 
 app.route('/text')
   .get(function(req,res){res.send("hello");})
-  .put(TopicExtraction);
+  .post(TopicExtraction);
 
 app.listen(8042);
