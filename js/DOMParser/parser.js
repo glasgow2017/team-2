@@ -3,26 +3,41 @@
  *
  * Here there are methods used to parse the dome and add alt text
  */
-const tag_category = {
-        "HEADER": "HEADER",
-        "FOOTER": "FOOTER",
-        "P": "TEXT",
-        "H1": "TEXT",
-        "H2": "TEXT",
-        "A": "LINK",
-        "IMG": "IMAGE",
-        "NAV": "MENU"
-    };
+const tag_role = {
+    "HEADER": "HEADER",
+    "FOOTER": "FOOTER",
+    "P": "TEXT",
+    "H1": "TEXT",
+    "H2": "TEXT",
+    "H3": "TEXT",
+    "H4": "TEXT",
+    "H5": "TEXT",
+    "H6": "TEXT",
+    "A": "LINK",
+    "IMG": "IMAGE",
+    "NAV": "MENU",
+    "BODY": "DOCUMENT",
+    "BUTTON": "BUTTON",
+    "FORM": "FORM",
+    "UL": "LIST",
+    "OL": "LIST",
+    "LI": "LIST ITEM"
+};
 
-const keyword_category = {
+const keyword_role = {
     "menu" : "MENU",
-    "nav" : "MENU"
+    "nav" : "MENU",
+    "header": "HEADER",
+    "footer": "FOOTER",
 };
 
 
-function start() {
-    backPropagation($('body'));
-    forwardPropagation($('body'));
+function generateRoles() {
+    const body = $('body');
+    backPropagation(body);
+    correctCategories(body);
+    inputFormCategories(body);
+    forwardPropagation(body);
 }
 
 /**
@@ -38,20 +53,25 @@ function forwardPropagation(element) {
     });
 }
 
+/**
+ * Back propagation for figuring the role of the element.
+ * @param element
+ * @returns {Map}
+ */
 function backPropagation(element) {
-    //if there are no children propagate
     let childrenDescriptions = new Map();
     if($(element).children().length === 0) {
-        setAttr(element, 'category', getCategory(element, element.tagName, "EMPTY"));
+        //Set the role of the element (def = EMPTY)
+        setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
         childrenDescriptions.set(element.tagName, 1);
     } else {
         $(element).children().each(function () {
-            childrenDescriptions = combineMaps(childrenDescriptions, backPropagation(this));
+            childrenDescriptions = mergeMaps(childrenDescriptions, backPropagation(this));
         });
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
-            setAttr(element, 'category', getCategory(undefined, childrenDescriptions.keys().next().value, "CONTAINER") + "_CONTAINER");
+            setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
         } else {
-            setAttr(element, 'category', getCategory(element, element.tagName, "CONTAINER"));
+            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
         }
     }
 
@@ -68,15 +88,17 @@ function backPropagation(element) {
 function getChildrenList(element) {
     const map = new Map();
     $(element).children().each(function () {
-        const tag_name = this.tagName;
-        if (map.has(tag_name)) {
-            map.set(tag_name, Number(map.get(tag_name)) + 1);
-        } else map.set(tag_name, 1);
+        const role = $(this).attr('role');
+        if (map.has(role)) {
+            map.set(role, Number(map.get(role)) + 1);
+        } else map.set(role, 1);
     });
 
+    //Clear unwanted tags
     clearMap(map);
 
-    let result = "empty,";
+    //Build result string
+    let result = "EMPTY,";
     if (map.size > 0) {
         result = "";
         for (let [key, value] of map) {
@@ -88,20 +110,59 @@ function getChildrenList(element) {
 }
 
 /**
- * Get category of an element.
+ * Get role of an element.
  *
  * @param tagName
+ * @param def is the default returned role
  * @returns {*}
  */
-function getCategory(element, tagName, def) {
-    if (element !== undefined) {
-        for (let word in keyword_category) {
-            var infer = inferCategoryFromAttributes(element, word);
-            if (infer !== undefined) return infer;
-        }
-    } else if (tag_category[tagName] !== undefined) {
-        return tag_category[tagName];
+function getRole(tagName, def) {
+    //If we have element passed search through the keywords and on first occurrence return it.
+    if (tag_role[tagName] !== undefined) {
+        return tag_role[tagName];
     } else return def;
+}
+
+/**
+ * Corrects some special categories.
+ *
+ * @param element
+ * @returns {*}
+ */
+function correctCategories(element) {
+    if (element.tagName === "SCRIPT") {
+        setAttr(element, 'role', "EMPTY");
+        return;
+    }
+    if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
+        setAttr(element, 'role', "TEXT");
+        return;
+    }
+    if ($(element).attr('nested') === "EMPTY" && $(element).text() === "" && $(element).attr('role') !== "IMAGE") {
+        setAttr(element, 'role', "EMPTY");
+        return;
+    }
+    for (let word in keyword_role) {
+        const infer = inferRoleFromAttributes(element, word);
+        if (infer !== undefined) {
+            setAttr(element, 'role', infer);
+            return infer;
+        }
+    }
+    $(element).children().each(function () {
+        correctCategories(this);
+    })
+}
+
+/**
+ * Create
+ * @param element
+ */
+function inputFormCategories(element) {
+    $(element).find('input').each(function () {
+        const type = $(this).attr('type');
+        setAttr(this, 'role', type.toUpperCase() + " INPUT");
+    })
 }
 
 /**
@@ -111,7 +172,7 @@ function getCategory(element, tagName, def) {
  * @param map2
  * @returns {*}
  */
-function combineMaps(map1, map2) {
+function mergeMaps(map1, map2) {
     for (var [key, value] of map2) {
         if (map1.has(key)) {
             map1.set(key, map1.get(key) + value);
@@ -124,23 +185,22 @@ function combineMaps(map1, map2) {
     return map1;
 }
 
-function buildRole(map) {
-    let result = "";
-    if (map.size > 0) {
-        for (let [key, value] of map) {
-            result += (value + " " + key + ", ");
-        }
-    }
-    return result;
-}
-
-function inferCategoryFromAttributes(element, keyword) {
-    var attributes = element.attributes;
+/**
+ * Infer the role of an element from the content of its attributes and a given keyword.
+ *
+ * @param element
+ * @param keyword
+ * @returns {*}
+ */
+function inferRoleFromAttributes(element, keyword) {
+    const attributes = element.attributes;
+    //If it has attributes
     if (attributes !== undefined) {
+        //Iterate
         for (let i = 0; i < attributes.length; i++) {
-            var a = attributes[i];
-            if (a.value.indexOf(keyword) > -1) {
-                return keyword_category[keyword];
+            //If the attribute contains this word return the word's role
+            if (attributes[i].value.indexOf(keyword) > -1) {
+                return keyword_role[keyword];
             }
         }
     }
@@ -158,35 +218,128 @@ function clearMap(map) {
     map.delete("NOSCRIPT");
     map.delete("svg");
     map.delete("BR");
+    map.delete("EMPTY");
 
     return map;
+}
+
+function getLabelsFromGoogle(base64Image) {
+    //TODO: Switch out with call to Henry's API
+    let response = {
+        "responses": [
+            {
+                "labelAnnotations": [
+                    {
+                        "mid": "/m/0bt9lr",
+                        "description": "dog",
+                        "score": 0.97346616
+                    },
+                    {
+                        "mid": "/m/09686",
+                        "description": "vertebrate",
+                        "score": 0.85700572
+                    },
+                    {
+                        "mid": "/m/01pm38",
+                        "description": "clumber spaniel",
+                        "score": 0.84881884
+                    },
+                    {
+                        "mid": "/m/04rky",
+                        "description": "mammal",
+                        "score": 0.847575
+                    },
+                    {
+                        "mid": "/m/02wbgd",
+                        "description": "english cocker spaniel",
+                        "score": 0.75829375
+                    }
+                ]
+            }
+        ]
+    };
+    return keywordsFromGoogle(response.responses[0].labelAnnotations);
 }
 
 /**
  *
  * @param {HTMLElement} element
+ * @return {Promise} promise
  */
 function buildRoleInfo(element) {
     //Handle images
-    if (element.nodeName === "IMG") {
-        let keywords = [new ImgKeyword("keyword 1", 0.8), new ImgKeyword("keyword 2", 0.4)];
-        element.setAttribute("role_info", keywords.join(","));
-        return keywords;
+    let dfd = jQuery.Deferred();
+    if (element.nodeName === "IMG") { //$(element).attr('role') === 'IMAGE'/'TEXT'
+        toDataURL(element).then(function(base64img){
+            getLabelsFromGoogle(base64img);
+            let keywords = [new ImgKeyword(base64img, 0.8), new ImgKeyword("keyword 2", 0.4)];
+            element.setAttribute("role_info", keywords.join(","));
+            //debugger;
+            dfd.resolve(keywords);
+        });
     //TODO: Handle text
-    } else if (element.nodeName === "") {
-
+    // } else if ($(element).attr('role') === 'TEXT') {
     } else {
-        let keywords = [];
+        let keywordPromises = [];
         for (let child of element.children) {
-            keywords.push(buildRoleInfo(child));
+            let promise = buildRoleInfo(child);
+            keywordPromises.push(promise);
         }
-        keywords = keywordReduction(keywords);
-        element.setAttribute("role_info", keywords.join(","))
+        $.when.apply($, keywordPromises).done(function() {
+            // do things that need to wait until ALL gets are done
+            // debugger;
+            // console.log(a, b, c);
+            // keywordReduction(keywords);
+            // element.setAttribute("role_info", keywords.join(","));
+            let keywords = [];
+            if (arguments.length > 0) {
+                for (let i = 0; i < arguments.length; i++) {
+                    for (let img = 0; img < arguments[i].length; img ++) {
+                        keywords.push(arguments[i][img]);
+                    }
+                    // debugger;
+                }
+            }
+            dfd.resolve(keywords);
+        });
     }
+    return dfd.promise();
+}
+
+/**
+ * https://stackoverflow.com/a/20285053
+ * @param image
+ * @param callback
+ * @param outputFormat
+ */
+function toDataURL(image, outputFormat) {
+    let dfd = jQuery.Deferred();
+    let img = new Image();
+    img.crossOrigin = 'Anonymous';
+    // img.onload = function() {
+        let canvas = document.createElement('CANVAS');
+        let ctx = canvas.getContext('2d');
+        let dataURL;
+        canvas.height = this.naturalHeight;
+        canvas.width = this.naturalWidth;
+        ctx.drawImage(image, 0, 0);
+        dataURL = canvas.toDataURL(outputFormat);
+        canvas.remove();
+        dfd.resolve(dataURL);
+    // };
+    // img.src = image;
+    // if (img.complete || img.complete === undefined) {
+    //     img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+    //     img.src = image;
+    // }
+    return dfd.promise();
 }
 
 function buildAllRoleInfo() {
-    buildRoleInfo($('body'));
+    // debugger;
+    buildRoleInfo($('body')[0]).then(function(a) {
+        console.log(a);
+    });
 }
 
 /**

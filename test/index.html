@@ -5,24 +5,30 @@
     <title>Title</title>
     <script src="../js/libs/jquery-3.2.1.min.js"></script>
     <script src="../js/DOMParser/parser.js"></script>
+    <script src="../js/DOMParser/Keyword.js"></script>
+    <script src="../js/DOMParser/image.js"></script>
 </head>
-<body>
-<div>
+<body role="home" role_info="some important stuff">
+<div role="container" role_info="a very unhelpful container">
     <header>
-        <div id="navbar">
-        </div>
+        <div id="navbar"></div>
         <p></p>
     </header>
-    <div id="image_container" role="main" role_info="Some random stuff">
-        <img src="test_image.jpg">
-        <img src="test_image.jpg">
+    <div id="image_container" role="container" role_info="Kittens are cute, team 2 is brilliant">
+        <img src="test_image.jpg" role="img" role_info="A picture of a cute cat">
+        <img src="test_image.jpg" role="img" role_info="A picture of a cute cat">
     </div>
-    <div id="left-menu" role="complementary" role_info="Other random stuff">
-        <img src="test_image.jpg">
-        <div id="p_container">
-            <p>sdjifjsk</p>
-            <p>jdfkdsjk</p>
+    <div id="left-menu" role="complementary" role_info="Complements to whoever got this to work.">
+        <img src="test_image.jpg" role="img" role_info="A picture of a cute cat">
+        <div id="p_container" role="list" role_info="contains two list items">
+            <p role="listitem" role_info="item">Some words to say.</p>
+            <p role="listitem" role_info="item">Some other words to say</p>
         </div>
+        <form>
+            <input type="checkbox">
+            <input type="button">
+            <input type="text">
+        </form>
     </div>
     <img src="test_image.jpg">
     <img src="test_image.jpg">
@@ -30,6 +36,6 @@
 </body>
 
 <script>
-    start();
+    generateRoles();
 </script>
 </html>
