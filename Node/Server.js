@@ -3,6 +3,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var fs = require("fs");
 var request =require("request");
+var base64 = require("node-base64-image");
 MeaningCloudAPIKey = "";
 fs.readFile("MeaningCloudAPIKey",function(err,data){
   if (err === null){
@@ -63,12 +64,13 @@ TopicExtraction = function(req,res){
 
     }
 
+  };
+
     var parsed = TopicParsing(retdata);
     console.log(parsed);
 
     //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(parsed);
-};
 })}
 
 TopicParsing = function(topics){
@@ -144,6 +146,20 @@ ApiQUery = function(text){
   return prom;
 }
 
+function ImageToBase64(req,res){
+  var link = req.body.image;
+  var options = {string: true};
+  console.log(link);
+  base64.encode(link, options, function (err, image) {
+    if (err) {
+        console.log(err);
+        res.status(400).send(err);
+    }
+    console.log(image);
+    res.send(image);
+});
+}
+
 app = express();
 
 app.use(bodyParser.json());
@@ -156,5 +172,8 @@ app.use(function(req, res, next) {
 app.route('/text')
   .get(function(req,res){res.send("hello");})
   .post(TopicExtraction);
+app.route('/image')
+  .post(ImageToBase64);
+
 
 app.listen(8043);
