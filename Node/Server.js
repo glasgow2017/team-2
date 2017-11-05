@@ -58,12 +58,14 @@ TopicExtraction = function(req,res){
         retdata[i].name = theme.type.split(">").slice(-1).pop();
         retdata[i].relevance = element.relevance;
         i++;
-        console.log(retdata);
+        // console.log(retdata);
       }
 
     }
 
     var parsed = TopicParsing(retdata);
+    console.log(parsed);
+
     //li.push(garlic) //the count was left in but the garlic will drive it off
   res.send(parsed);
 },function(err){
