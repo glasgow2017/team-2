@@ -39,9 +39,10 @@ function startNav() {
      * @param list The list of elements to read out.
      */
     function readOutElementList(list) {
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         // Prepare event listening
         isListening = true;
-        console.log("Are we listening now? " + isListening);
+        //console.log("Are we listening now? " + isListening);
 
         // Read out elements
         responsiveVoice.speak("There's " + $(currentView).attr("nested") + " in this container.");
@@ -51,7 +52,7 @@ function startNav() {
         }
 
 
-        console.log(parentView);
+        //console.log(parentView);
         if (parentView !== undefined) {
             // Read out back button
             readBackInfo();
@@ -102,11 +103,12 @@ function startNav() {
         currentView = newElement;
         //console.log("New Parent View: " + parentView);
         //console.log("New Current View: " + currentView);
-        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
+        currentDisplayElements = getElements(newElement);
+        console.log("Current view role: " + $(currentView).attr("role"));
+        console.log("Current view role: " + $(newElement).attr("role"));
         if ($(currentView).attr("role").indexOf("CONTAINER") >= 0 || $(currentView).attr("role").indexOf("MENU") >= 0 ||
             $(currentView).attr("role").indexOf("HEADER") >= 0) {
             console.log("This next thing is a directory!");
-            currentDisplayElements = getElements(newElement);
             readOutElementList(currentDisplayElements);
         } else {
             console.log("This next thing is NOT a directory!");
@@ -128,6 +130,7 @@ function startNav() {
         currentDisplayElements = undefined;
 
         // Depending on type, read differently
+        responsiveVoice.speak("The " + $(currentView).attr("role") + " element.");
         switch(jElement.attr("role")) {
             case "TEXT":
                 responsiveVoice.speak(jElement.text(), CONTENT_VOICE);
@@ -198,7 +201,9 @@ function startNav() {
     function getElements(selectedElement) {
         if (parseNested($(selectedElement).attr("nested")) === 1) {
             // No need to view this element, skip to next element
-            return getElements($(selectedElement).children("[role][role!='EMPTY']")[0]);
+            currentView = $(selectedElement).children("[role][role!='EMPTY']")[0];
+            console.log("View passed in: " + currentView);
+            return getElements(currentView);
         } else {
             return $(selectedElement).children("[role][role!='EMPTY']");
         }
