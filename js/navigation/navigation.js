@@ -74,7 +74,7 @@ function startNav() {
                 responsiveVoice.speak(index + ", a link to " + jElement.attr("role_info"));
                 break;
             default:
-                responsiveVoice.speak(index + ", the" + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
+                responsiveVoice.speak(index + ", the " + jElement.attr("role") + " element, which is about " + jElement.attr("role_info"));
         }
     }
 
