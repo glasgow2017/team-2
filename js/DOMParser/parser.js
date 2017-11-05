@@ -31,7 +31,7 @@ const tag_role = {
     "TR": "ROW",
     "TD": "CELL",
     "NOSCRIPT": "EMPTY",
-    "SCRIPT": "EMPTY"
+    "SCRIPT": "EMPTY",
 
 };
 
@@ -47,7 +47,7 @@ const keyword_role = {
  */
 function generateRoles() {
     const body = $('body');
-
+    
     //create the roles of the elements
     backPropagation(body);
     //correct the roles of the input forms
@@ -58,24 +58,12 @@ function generateRoles() {
     correctRoles(body);
     //make a new nesting attribute change based on the updated roles
     forwardPropagation(body);
+
+    emptyBackPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
-    //remove all hidden elements
-    removeHidden(body);
 }
 
-/**
- * Removes the hidden elements from consideration.
- *
- * @param element
- */
-function removeHidden(element) {
-    if (!$(element).is(":visible")) {
-        setAttr(element, 'role', 'EMPTY');
-        setAttr(element, 'nested', 'EMPTY');
-    }
-    doForChildren(element, removeHidden);
-}
 
 /**
  * Transforms an existing alt attribute to role-info.
@@ -124,6 +112,31 @@ function backPropagation(element) {
         //Form smart roles (IMAGE CONTAINER) or normal roles
         if(childrenDescriptions.size === 1 && childrenDescriptions.values().next().value !== 1) {
             setAttr(element, 'role', getRole(childrenDescriptions.keys().next().value, "CONTAINER") + " CONTAINER");
+        } else {
+            setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
+        }
+    }
+
+    return childrenDescriptions;
+}
+
+function emptyBackPropagation(element) {
+    let childrenDescriptions = new Map();
+    if($(element).children().length === 0) {
+        //Set the role of the element (def = EMPTY)
+        setAttr(element, 'role', getRole(element.tagName, "EMPTY"));
+        childrenDescriptions.set(getRole(element.tagName, "EMPTY"), 1);
+    } else {
+        //Count all the children
+        $(element).children().each(function () {
+            childrenDescriptions = mergeMaps(childrenDescriptions, emptyBackPropagation(this));
+        });
+
+        console.log(element, childrenDescriptions);
+
+        //Form smart roles (IMAGE CONTAINER) or normal roles
+        if(childrenDescriptions.size === 1 && childrenDescriptions.keys().next().value === "EMPTY" || childrenDescriptions.size === 0) {
+            setAttr(element, 'role', "EMPTY");
         } else {
             setAttr(element, 'role', getRole(element.tagName, "CONTAINER"));
         }
@@ -184,9 +197,11 @@ function getRole(tagName, def) {
  * @returns {*}
  */
 function correctRoles(element) {
+    //console.log(element);
     //Replace special tags
-    if (["SCRIPT","FORM","SELECT","NOSCRIPT"].indexOf(element.tagName) > -1) {
+    if (["SCRIPT","FORM","SELECT","NOSCRIPT","OPTION", "IFRAME"].indexOf(element.tagName) > -1) {
         setAttr(element, 'role', tag_role[element.tagName]);
+        doForChildren(element, correctRoles);
         return;
     }
 
@@ -199,11 +214,13 @@ function correctRoles(element) {
     //If element does not have any children but has meaningful text (<div>text</div>)
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length > 0) {
         setAttr(element, 'role', "TEXT");
+        doForChildren(element, correctRoles);
         return;
     }
     //If elements does not have any children and no meaningful text make them empty
     if ($(element).attr('nested') === "EMPTY" && $(element).text().trim().length === 0 && $(element).attr('role') !== "IMAGE") {
         setAttr(element, 'role', "EMPTY");
+        doForChildren(element, correctRoles);
         return;
     }
 
@@ -226,11 +243,13 @@ function correctRoles(element) {
 function inputFormCategories(element) {
     $(element).find('input').each(function () {
         const type = $(this).attr('type');
-        setAttr(this, 'role', type.toUpperCase() + " INPUT");
-        //Add label info
-        if (this.id !== undefined && this.id.length > 0) {
-            var info = $('label[for=' + this.id + ']').html();
-            setAttr(this, 'role-info', info);
+        if (type !== undefined) {
+            setAttr(this, 'role', type.toUpperCase() + " INPUT");
+            //Add label info
+            if (this.id !== undefined && this.id.length > 0) {
+                var info = $('label[for=' + this.id + ']').html();
+                setAttr(this, 'role-info', info);
+            }
         }
     })
 }
