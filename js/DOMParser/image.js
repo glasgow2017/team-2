@@ -32,6 +32,7 @@ function makeRequest(APIkey, imageAs64) {
         }]
     };
 
+    //make an ajax post 
     return $.ajax({
         type: 'POST',
         url: URL + APIkey,
