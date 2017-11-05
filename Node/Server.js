@@ -1,4 +1,4 @@
-var http = require("http");
+var https = require("https");
 var express = require("express");
 var bodyParser = require("body-parser");
 var fs = require("fs");
@@ -14,10 +14,14 @@ fs.readFile("MeaningCloudAPIKey",function(err,data){
 });
 
 TopicExtraction = function(req,res){
-  console.log("connection");
+  console.log("\n\n\n\n"+req.body.text+"\n\n\n\n\n");
+
   var data  = ApiQUery(req.body.text);
   var i= 0;
     var retdata = [];
+    if (data.entity_list === null){
+      res.status(404).send("unknown data");
+    }
     for (var element of data.entity_list){
       if (element.semtheme_list !== null) {
         for(var theme of element.semtheme_list){
@@ -87,14 +91,17 @@ ApiQUery = function(text){
   text+
   "&tt=a&uw=y";
 
-  return http.get(query);
+  var result = https.get(query)
+  console.log(result);
+  return result;
 }
 
 app = express();
 
 app.use(bodyParser.json());
-
+app.use(bodyParser.urlencoded());
 app.route('/text')
-  .put(TopicExtraction);
+  .get(function(req,res){res.send("hello");})
+  .post(TopicExtraction);
 
 app.listen(8042);
