@@ -62,6 +62,9 @@ function generateRoles() {
     emptyBackPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
+    //remove all hidden elements
+    debugger;
+    buildAllRoleInfo();
 }
 
 
@@ -365,6 +368,43 @@ function getLabelsFromGoogle(base64Image) {
     return dfr;
 }
 
+function keywordsFromNLP(response) {
+    return new TextKeyword("word", 5, 10);
+}
+
+function sendToNLPServer(text) {
+    let dfr = $.Deferred();
+    $.ajax({
+        type: 'POST',
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-Type", "application/json");
+        },
+        url: "http://34.241.43.16:8043/text",
+        data: JSON.stringify({
+            text: text
+        }),
+        contentType: "application/json",
+        dataType: 'text'
+    }).done(function (response) {
+        dfr.resolve(response);
+    }).fail(function (response) {
+        console.log(response);
+    });
+    return dfr;
+}
+
+/**
+ * Can't believe I just used this code
+ * @param ms
+ */
+function wait(ms){
+    let start = new Date().getTime();
+    let end = start;
+    while(end < start + ms) {
+        end = new Date().getTime();
+    }
+}
+
 /**
  *
  * @param {HTMLElement} element
@@ -382,6 +422,14 @@ function buildRoleInfo(element) {
         });
     } else if ($(element).attr('role') === 'TEXT') {
         const text = $(element).text();
+        sendToNLPServer(text).then(function(response) {
+            let keywords = keywordsFromNLP(response);
+            element.setAttribute("role_info", keywordReduction(keywords).join(","));
+            dfd.resolve(keywords);
+        });
+        // The NLP server doesn't like too many requests in a short period of time, so we have to block this thread for
+        // a while to make sure that the responses arrive
+        wait(550);
     } else {
         let keywordPromises = [];
         for (let child of element.children) {
