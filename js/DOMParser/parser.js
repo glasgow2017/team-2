@@ -172,7 +172,7 @@ function inputFormCategories(element) {
         const type = $(this).attr('type');
         setAttr(this, 'role', type.toUpperCase() + " INPUT");
         //Add label info
-        if (this.id !== undefined) {
+        if (this.id !== undefined && this.id.length > 0) {
             var info = $('label[for=' + this.id + ']').html();
             setAttr(this, 'role-info', info);
         }
