@@ -54,6 +54,11 @@ function generateRoles() {
     transformAltToInfo(body);
 }
 
+/**
+ * Transforms an existing alt attribute to role-info.
+ *
+ * @param element
+ */
 function transformAltToInfo(element) {
     if ($(element).attr('alt') !== undefined) {
         const alt = $(element).attr('alt').length;
@@ -250,6 +255,17 @@ function inferRoleFromAttributes(element, keyword) {
 }
 
 /**
+ * Returns all elements with a particular role, useful for searches.
+ *
+ * @param element
+ * @param searchString
+ * @returns {*|jQuery|HTMLElement}
+ */
+function returnSearchElement(element, searchString) {
+    return $(element[0].tagName.toLowerCase() + ' [role="' + searchString.toUpperCase() + '"]');
+}
+
+/**
  * Helping method that executes a function on all children of an element.
  * @param element
  * @param f
@@ -259,6 +275,7 @@ function doForChildren(element, f) {
         $(element).children().each(function() {f(this)});
     }
 }
+
 /**
  * Clears the map of unwanted tags.
  *
