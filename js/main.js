@@ -6,6 +6,8 @@ script_tag.setAttribute("src", chrome.extension.getURL("js/libs/jquery-3.2.1.min
 try {
     console.log("Generating roles...");
     generateRoles();
+
+    buildAllRoleInfo();
 } catch (TypeError) {
     console.log("Threw a Type Error");
 }

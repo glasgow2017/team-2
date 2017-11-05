@@ -62,9 +62,6 @@ function generateRoles() {
     emptyBackPropagation(body);
     //if there is already provided alt, use it
     transformAltToInfo(body);
-    //remove all hidden elements
-    debugger;
-    buildAllRoleInfo();
 }
 
 
@@ -259,8 +256,6 @@ function inputFormCategories(element) {
     })
 }
 
-// TODO: Fix text section thing?
-
 /**
  * Combines 2 maps so that they do not have repeating elements.
  *
@@ -389,7 +384,8 @@ function sendToNLPServer(text) {
             text: text
         }),
         contentType: "application/json",
-        dataType: 'text'
+        dataType: 'text',
+        timeout: 3000
     }).done(function (response) {
         dfr.resolve(response);
     }).fail(function (response) {
@@ -432,6 +428,7 @@ function buildRoleInfo(element) {
             element.setAttribute("role_info", keywordReduction(keywords).join(","));
             dfd.resolve(keywords);
         });
+
         // The NLP server doesn't like too many requests in a short period of time, so we have to block this thread for
         // a while to make sure that the responses arrive
         wait(550);
