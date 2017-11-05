@@ -141,13 +141,6 @@ function correctCategories(element) {
         setAttr(element, 'role', tag_role[element.tagName]);
         return;
     }
-
-    //remove span elements
-    $(element).find("span").each(function(index) {
-        const text = $(this).text();//get span content
-        $(this).replaceWith(text);//replace all span with just content
-    });
-
     if ($(element).attr('nested') === "EMPTY" && $(element).text().length > 0) {
         setAttr(element, 'role', "TEXT");
         return;
@@ -241,7 +234,6 @@ function clearMap(map) {
     map.delete("BR");
     map.delete("EMPTY");
     map.delete("LABEL");
-    map.delete("IFRAME");
 
     return map;
 }
@@ -249,17 +241,15 @@ function clearMap(map) {
 function getLabelsFromGoogle(base64Image) {
     let dfr = jQuery.Deferred();
     //todo; take me out
-    let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc");
+    let promise = makeRequest("AIzaSyByjaob_PYpShiOhTVv6ojGS1Igf39s8Yc", base64Image);
 
     promise.done(function (response) {
         let out = response.responses[0];
 
         let labelAnnotations = out.labelAnnotations;
-        if (labelAnnotations === undefined || labelAnnotations === null){
-            //do something
-        } else {
-            out = keywordsFromGoogle(out.labelAnnotations);
-        }
+
+        out = keywordsFromGoogle(out.labelAnnotations);
+
 
         /**
          * come back later when you work
@@ -290,6 +280,7 @@ function buildRoleInfo(element) {
     if (element.nodeName === "IMG") { //$(element).attr('role') === 'IMAGE'/'TEXT'
         toDataURL(element).then(function(base64img){
             getLabelsFromGoogle(base64img).then(function(keywords) {
+                debugger;
                 element.setAttribute("role_info", keywords.join(","));
                 dfd.resolve(keywords);
             });
